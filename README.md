@@ -1,5 +1,15 @@
 # zkSync Hardhat project template
 
+## Notes
+
+zkJank continues to offer fun new challenges to productivity.
+
+In this case:
+
+- Test folder in layerZero will not work
+- Ensure you use `npm i --force` because they pin OZ 4.6.0 for some reason
+- Run `remappings.sh` to replace foundry remappings
+
 This project was scaffolded with [zksync-cli](https://github.com/matter-labs/zksync-cli).
 
 ## Project Layout

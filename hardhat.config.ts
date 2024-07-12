@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 
 import "@matterlabs/hardhat-zksync";
+import "@typechain/hardhat";
 
 const config: HardhatUserConfig = {
   defaultNetwork: "zkSyncSepoliaTestnet",
@@ -17,7 +18,8 @@ const config: HardhatUserConfig = {
       zksync: true,
       verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification",
     },
-    zkSyncGoerliTestnet: { // deprecated network
+    zkSyncGoerliTestnet: {
+      // deprecated network
       url: "https://testnet.era.zksync.dev",
       ethNetwork: "goerli",
       zksync: true,
@@ -45,7 +47,18 @@ const config: HardhatUserConfig = {
     },
   },
   solidity: {
-    version: "0.8.17",
+    compilers: [
+      {
+        version: "0.8.20",
+      },
+      { version: "0.8.17" },
+      { version: "0.8.22" },
+    ],
+  },
+  typechain: {
+    // more info about this plugin in https://www.npmjs.com/package/@typechain/hardhat
+    outDir: "typechain",
+    target: "ethers-v5",
   },
 };
 

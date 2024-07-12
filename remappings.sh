@@ -19,6 +19,8 @@ declare -A remappings=(
   ["@voting-chain/"]="contracts/voting-chain/"
   ["@execution-chain/"]="contracts/execution-chain/"
   ["@utils/"]="contracts/utils/"
+
+  ["@mocks/"]="contracts/helpers/"
 )
 
 # Directory to perform replacements
