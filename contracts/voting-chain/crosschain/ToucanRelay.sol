@@ -105,7 +105,12 @@ contract ToucanRelay is
     }
 
     /// @notice Thrown if the voter fails the `canVote` check during the voting process.
-    error CannotVote(uint256 proposalRef, address voter, Tally voteOptions, ErrReason reason);
+    error CannotVote(
+        uint256 proposalRef,
+        address voter,
+        Tally voteOptions,
+        ErrReason reason
+    );
 
     /// @notice Thrown if the votes cannot be dispatched according to `canDispatch`.
     error CannotDispatch(uint256 proposalRef, ErrReason reason);
@@ -191,7 +196,9 @@ contract ToucanRelay is
     /// @notice Sets the bridge delay for the relay. This is a window before the proposal officially
     /// closes where votes can no longer be cast. This is to allow for cross chain communication.
     /// @param _buffer The delay in seconds.
-    function setBridgeDelayBuffer(uint32 _buffer) external auth(OAPP_ADMINISTRATOR_ID) {
+    function setBridgeDelayBuffer(
+        uint32 _buffer
+    ) external auth(OAPP_ADMINISTRATOR_ID) {
         _setBridgeDelayBuffer(_buffer);
     }
 
@@ -204,10 +211,18 @@ contract ToucanRelay is
     /// @param _proposalRef The proposal reference to vote on.
     /// @dev Must be computed from execution chain proposal params as it is not validated here.
     /// @param _voteOptions Votes split between yes no and abstain up to the voter's total voting power.
-    function vote(uint256 _proposalRef, Tally calldata _voteOptions) external nonReentrant {
+    function vote(
+        uint256 _proposalRef,
+        Tally calldata _voteOptions
+    ) external nonReentrant {
         // check that the user can actually vote given their voting power and the proposal
-        (bool success, ErrReason e) = canVote(_proposalRef, msg.sender, _voteOptions);
-        if (!success) revert CannotVote(_proposalRef, msg.sender, _voteOptions, e);
+        (bool success, ErrReason e) = canVote(
+            _proposalRef,
+            msg.sender,
+            _voteOptions
+        );
+        if (!success)
+            revert CannotVote(_proposalRef, msg.sender, _voteOptions, e);
 
         // get the proposal data
         Proposal storage proposal = _proposals[dstEid][_proposalRef];
@@ -255,7 +270,13 @@ contract ToucanRelay is
         address refund = refundAddress(dstEid);
 
         // dispatch the votes via the lz endpoint
-        receipt = _lzSend(dstEid, message, _params.options, _params.fee, refund);
+        receipt = _lzSend(
+            dstEid,
+            message,
+            _params.options,
+            _params.fee,
+            refund
+        );
 
         emit VotesDispatched(dstEid, _proposalRef, proposalVotes, receipt);
     }
@@ -282,10 +303,9 @@ contract ToucanRelay is
                 votes: proposal.tally
             })
         );
-        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption({
-            _gas: _gasLimit,
-            _value: 0
-        });
+        bytes memory options = OptionsBuilder
+            .newOptions()
+            .addExecutorLzReceiveOption({_gas: _gasLimit, _value: 0});
         MessagingFee memory fee = _quote({
             _dstEid: dstEid,
             _message: message,
@@ -308,13 +328,18 @@ contract ToucanRelay is
         if (_voteOptions.isZero()) return (false, ErrReason.ZeroVotes);
 
         // Check the proposal is open as defined by the timestamps in the proposal ID
-        if (!isProposalOpen(_proposalRef)) return (false, ErrReason.ProposalNotOpen);
+        if (!isProposalOpen(_proposalRef))
+            return (false, ErrReason.ProposalNotOpen);
 
         // Check if the proposal has enough time remaining to dispatch a xchain vote
-        if (!hasEnoughTimeToBridge(_proposalRef)) return (false, ErrReason.NotEnoughTimeToBridge);
+        if (!hasEnoughTimeToBridge(_proposalRef))
+            return (false, ErrReason.NotEnoughTimeToBridge);
 
         // this could re-enter with a malicious governance token
-        uint256 votingPower = token.getPastVotes(_voter, _proposalRef.getBlockSnapshotTimestamp());
+        uint256 votingPower = token.getPastVotes(
+            _voter,
+            _proposalRef.getBlockSnapshotTimestamp()
+        );
 
         // the user has insufficient voting power to vote
         if (_totalVoteWeight(_voteOptions) > votingPower)
@@ -325,7 +350,9 @@ contract ToucanRelay is
     }
 
     /// @notice Checks if a proposal has enough time to bridge votes.
-    function hasEnoughTimeToBridge(uint256 _proposalRef) public view returns (bool) {
+    function hasEnoughTimeToBridge(
+        uint256 _proposalRef
+    ) public view returns (bool) {
         if (buffer == 0) return true;
 
         // get the end time of the proposal
@@ -342,9 +369,12 @@ contract ToucanRelay is
     /// @notice Checks if the votes for a proposal can be dispatched cross chain.
     /// @param _proposalRef The proposal reference to check.
     /// @return Whether a proposal is open and has votes to dispatch.
-    function canDispatch(uint256 _proposalRef) public view virtual returns (bool, ErrReason) {
+    function canDispatch(
+        uint256 _proposalRef
+    ) public view virtual returns (bool, ErrReason) {
         // Check the proposal is open as defined by the timestamps in the proposal ID
-        if (!isProposalOpen(_proposalRef)) return (false, ErrReason.ProposalNotOpen);
+        if (!isProposalOpen(_proposalRef))
+            return (false, ErrReason.ProposalNotOpen);
 
         // check that there are votes to dispatch
         Tally memory proposalVotes = _proposals[dstEid][_proposalRef].tally;
@@ -356,7 +386,9 @@ contract ToucanRelay is
     /// @return If a proposal is accepting votes, as defined by the timestamps in the proposal reference.
     /// Note that we do not have any information in this implementation that validates if the proposal has already
     /// been executed. This remains the responsibility of the DAO and User.
-    function isProposalOpen(uint256 _proposalRef) public view virtual returns (bool) {
+    function isProposalOpen(
+        uint256 _proposalRef
+    ) public view virtual returns (bool) {
         // overflow check seems redundant but L2s sometimes have unique rules and edge cases
         uint32 currentTime = block.timestamp.toUint32();
         return _proposalRef.isOpen(currentTime);
@@ -364,7 +396,9 @@ contract ToucanRelay is
 
     /// @return The sums of the votes in a Voting Tally.
     /// @dev Can revert if combined weights exceed the max 256 bit integer.
-    function _totalVoteWeight(Tally memory _voteOptions) internal pure virtual returns (uint256) {
+    function _totalVoteWeight(
+        Tally memory _voteOptions
+    ) internal pure virtual returns (uint256) {
         return _voteOptions.sum();
     }
 
@@ -379,7 +413,9 @@ contract ToucanRelay is
     /// @dev Encoded as a 256bit integer in case we want to change the implementation to a different chain Id.
     /// @return The address that will receive the refund. By default this is the LayerZero peer address.
     ///         which should implement a sweep function to recover the funds.
-    function refundAddress(uint256 _dstEid) public view virtual returns (address) {
+    function refundAddress(
+        uint256 _dstEid
+    ) public view virtual returns (address) {
         return bytes32ToAddress(peers[_dstEid.toUint32()]);
     }
 
@@ -394,14 +430,19 @@ contract ToucanRelay is
     }
 
     /// @return Vote data for a given proposal and voter, for the currently set destination chain.
-    function getVotes(uint256 _proposalRef, address _voter) external view returns (Tally memory) {
+    function getVotes(
+        uint256 _proposalRef,
+        address _voter
+    ) external view returns (Tally memory) {
         return _proposals[dstEid][_proposalRef].voters[_voter];
     }
 
     /// @notice External getter to fetch proposal votes.
     /// @param _proposalRef The proposal reference to get the votes for.
     /// @return The tally of votes for a given proposal and the current EID.
-    function proposals(uint256 _proposalRef) external view returns (Tally memory) {
+    function proposals(
+        uint256 _proposalRef
+    ) external view returns (Tally memory) {
         return proposals(dstEid, _proposalRef);
     }
 
@@ -409,7 +450,10 @@ contract ToucanRelay is
     /// @param _dstEid The destination EID to get the proposal data for.
     /// @param _proposalRef The proposal reference to get the votes for.
     /// @return The tally of votes for a given proposal and EID.
-    function proposals(uint32 _dstEid, uint256 _proposalRef) public view returns (Tally memory) {
+    function proposals(
+        uint32 _dstEid,
+        uint256 _proposalRef
+    ) public view returns (Tally memory) {
         return _proposals[_dstEid][_proposalRef].tally;
     }
 
@@ -436,7 +480,9 @@ contract ToucanRelay is
     /// @dev Keeps permissions lean by giving OApp administrator the ability to upgrade.
     /// The alternative would be to define a separate permission which adds complexity.
     /// As this contract is upgradeable, this can be changed in the future.
-    function _authorizeUpgrade(address) internal override auth(OAPP_ADMINISTRATOR_ID) {}
+    function _authorizeUpgrade(
+        address
+    ) internal override auth(OAPP_ADMINISTRATOR_ID) {}
 
     /// @dev Gap to reserve space for future storage layout changes.
     uint256[46] private __gap;

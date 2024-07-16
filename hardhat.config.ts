@@ -4,6 +4,9 @@ import "@matterlabs/hardhat-zksync";
 import "@typechain/hardhat";
 
 const config: HardhatUserConfig = {
+  mocha: {
+    timeout: 0,
+  },
   defaultNetwork: "zkSyncSepoliaTestnet",
   networks: {
     zkSyncSepoliaTestnet: {

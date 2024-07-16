@@ -20,13 +20,14 @@ import {DVNOptions} from "contracts/layer-zero/LayerZero-v2/messagelib/contracts
 import {UlnOptions} from "contracts/layer-zero/LayerZero-v2/messagelib/contracts/uln/libs/UlnOptions.sol";
 import {CalldataBytesLib} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/CalldataBytesLib.sol";
 
-contract EndpointV2Mock is ILayerZeroEndpointV2, MessagingContext {
+contract EndpointV2LocalMock is ILayerZeroEndpointV2, MessagingContext {
     using ExecutorOptions for bytes;
     using OFTMsgCodec for bytes;
     using OFTMsgCodec for bytes32;
     using OFTMsgCodec for address;
     using SafeCast for uint256;
     using CalldataBytesLib for bytes;
+
 
     bytes32 public constant EMPTY_PAYLOAD_HASH = bytes32(0);
 
@@ -160,7 +161,7 @@ contract EndpointV2Mock is ILayerZeroEndpointV2, MessagingContext {
         bytes memory payload = PacketV1Codec.encodePayload(packet);
         bytes32 payloadHash = keccak256(payload);
 
-        EndpointV2Mock(lzEndpoint).receivePayload{value: dstAmount}(
+        EndpointV2LocalMock(lzEndpoint).receivePayload{value: dstAmount}(
             origin,
             packet.receiver.bytes32ToAddress(),
             payloadHash,

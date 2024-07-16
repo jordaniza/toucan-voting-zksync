@@ -1,363 +1,295 @@
+import { BigNumber, ethers } from "ethers";
+import {
+  EXECUTION_VOTER,
+  ExecutionChain,
+  VOTING_VOTER,
+  VotingChain,
+  _deployLayerZero,
+  mockApplyUninstallationParams,
+  wireLayerZero,
+} from "./base";
+import {
+  applyInstallationsSetPeersRevokeAdmin as applyInstallationsSetPeersRevokeAdminExecutionChain,
+  prepareSetupReceiver,
+  prepareSetupToucanVoting,
+  prepareUninstallAdmin,
+  setupExecutionChain,
+} from "./execution-chain";
+import {
+  prepareSetupAdminXChain,
+  prepareSetupRelay,
+  setupVotingChain,
+  applyInstallationsSetPeersRevokeAdmin as applyInstallationsSetPeersRevokeAdminVotingChain,
+} from "./voting-chain";
+import { Options, hexZeroPadTo32 } from "@layerzerolabs/lz-v2-utilities";
+import { addressToBytes32 } from "@layerzerolabs/lz-v2-utilities";
+import { MessagingFeeStruct, SendParamStruct } from "../../typechain/contracts/erc20/MyOFT";
 import { expect } from "chai";
-import { Contract } from "ethers";
-import * as ethers from "ethers";
+import { getWallet } from "../../deploy/utils";
+import { IDAO } from "../../typechain";
+import { Provider } from "zksync-ethers";
+import * as hre from "hardhat";
+import { HttpNetworkUserConfig } from "hardhat/types";
 
-import { Options } from "@layerzerolabs/lz-v2-utilities";
-import { LOCAL_RICH_WALLETS, deployContract, getWallet } from "../../deploy/utils";
-import { Signer, Wallet } from "zksync-ethers";
-
-import {
-  ActionRelay,
-  Admin,
-  AdminSetup,
-  AdminSetup__factory,
-  AdminXChain,
-  AdminXChainSetup,
-  Admin__factory,
-  DAO,
-  DAO__factory,
-  EndpointV2,
-  EndpointV2Mock,
-  GovernanceERC20,
-  GovernanceERC20VotingChain,
-  GovernanceOFTAdapter,
-  MockDAOFactory,
-  MockDAOFactory__factory,
-  MockPluginSetupProcessor,
-  MockPluginSetupProcessor__factory,
-  MyOFT,
-  OFT,
-  OFTMock,
-  OFTTokenBridge,
-  ToucanReceiver,
-  ToucanReceiverSetup,
-  ToucanRelay,
-  ToucanRelaySetup,
-  ToucanVoting,
-  ToucanVotingSetup,
-  PluginRepo,
-  PluginRepo__factory,
-  IPluginSetup,
-  GovernanceERC20__factory,
-  ToucanVotingSetup__factory,
-  ToucanReceiverSetup__factory,
-  ToucanVoting__factory,
-  ActionRelay__factory,
-  ToucanReceiver__factory,
-  GovernanceOFTAdapter__factory,
-  GovernanceERC20VotingChain__factory,
-  ToucanRelay__factory,
-  AdminXChain__factory,
-  OFTTokenBridge__factory,
-  AdminXChainSetup__factory,
-  ToucanRelaySetup__factory,
-  EndpointV2LocalMock__factory,
-  EndpointV2LocalMock,
-  EndpointV2__factory,
-  T,
-  D,
-  T__factory,
-  PTFactory,
-} from "../../typechain";
-import { Address } from "zksync-ethers/build/types";
-
-import { PermissionLib } from "../../typechain/@aragon/osx/core/dao/DAO";
-import {
-  InstallationPreparedEvent,
-  PluginSetupRefStruct,
-} from "../../typechain/contracts/helpers/osx/MockPSP.sol/MockPluginSetupProcessor";
-import { Interface, LogDescription } from "ethers/lib/utils";
-import { DAORegisteredEvent } from "../../typechain/contracts/helpers/osx/MockDAOFactory";
-
-type MultiTargetPermission = PermissionLib.MultiTargetPermissionStruct;
-
-interface ChainBase {
-  chainName: string;
-  eid: number;
-  chainid: number;
-  lzEndpoint: Address;
-  dao: DAO;
-  psp: MockPluginSetupProcessor;
-  daoFactory: MockDAOFactory;
-  deployer: Wallet;
-  adminSetup: AdminSetup;
-  admin: Admin;
-  adminUninstallPermissions: MultiTargetPermission[];
-}
-
-interface VotingChain {
-  base: ChainBase;
-  token: GovernanceERC20VotingChain;
-  relay: ToucanRelay;
-  adminXChain: AdminXChain;
-  bridge: OFTTokenBridge;
-  adminXChainSetup: AdminXChainSetup;
-  relaySetup: ToucanRelaySetup;
-  toucanRelayPermissions: MultiTargetPermission[];
-  adminXChainPermissions: MultiTargetPermission[];
-}
-
-interface ExecutionChain {
-  base: ChainBase;
-  token: GovernanceERC20;
-  adapter: GovernanceOFTAdapter;
-  receiver: ToucanReceiver;
-  actionRelay: ActionRelay;
-  voting: ToucanVoting;
-  receiverSetup: ToucanReceiverSetup;
-  votingSetup: ToucanVotingSetup;
-  receiverPermissions: MultiTargetPermission[];
-  votingPermissions: MultiTargetPermission[];
-}
-
-class ChainBase {
-  constructor(chainName: string, chainid: number, deployer: Wallet, eid: number) {
-    this.chainName = chainName;
-    this.eid = eid;
-    this.chainid = chainid;
-    this.lzEndpoint = ethers.constants.AddressZero;
-    this.deployer = deployer;
-  }
-}
-
-class ExecutionChain {
-  constructor(base: ChainBase) {
-    this.base = base;
-    this.token = GovernanceERC20__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.adapter = GovernanceOFTAdapter__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.receiver = ToucanReceiver__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.actionRelay = ActionRelay__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.voting = ToucanVoting__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.receiverSetup = ToucanReceiverSetup__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.votingSetup = ToucanVotingSetup__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.receiverPermissions = [];
-    this.votingPermissions = [];
-  }
-}
-
-class VotingChain {
-  constructor(base: ChainBase) {
-    this.base = base;
-    this.token = GovernanceERC20VotingChain__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.relay = ToucanRelay__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.adminXChain = AdminXChain__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.bridge = OFTTokenBridge__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.adminXChainSetup = AdminXChainSetup__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.relaySetup = ToucanRelaySetup__factory.connect(ethers.constants.AddressZero, base.deployer);
-    this.toucanRelayPermissions = [];
-    this.adminXChainPermissions = [];
-  }
-}
-
-/// deploy the mock PSP and DAOFactory with the admin plugin
-async function deployOSX(base: ChainBase): Promise<void> {
-  const adminZk = await deployContract("AdminSetupZkSync", [], { wallet: base.deployer });
-  const pspZk = await deployContract("MockPluginSetupProcessor", [adminZk.address], { wallet: base.deployer });
-  const daoFactoryZk = await deployContract("MockDAOFactory", [pspZk.address], { wallet: base.deployer });
-
-  base.adminSetup = adminZk as AdminSetup;
-  base.psp = pspZk as MockPluginSetupProcessor;
-  base.daoFactory = daoFactoryZk as MockDAOFactory;
-}
-
-const mockDAOSettings: MockDAOFactory.DAOSettingsStruct = {
-  trustedForwarder: ethers.constants.AddressZero,
-  daoURI: "test",
-  subdomain: "test",
-  metadata: "0x",
-};
-
-const mockPluginSetupRef: PluginSetupRefStruct = {
-  pluginSetupRepo: ethers.constants.AddressZero,
-  versionTag: {
-    build: 0,
-    release: 1,
-  },
-};
-
-const mockPluginSettings = (data: string): MockDAOFactory.PluginSettingsStruct[] => [
-  {
-    data,
-    pluginSetupRef: mockPluginSetupRef,
-  },
-];
-
-export async function findEventTopicLog<T>(
-  tx: ethers.ContractTransaction,
-  iface: Interface,
-  eventName: string
-): Promise<LogDescription & (T | LogDescription)> {
-  const receipt = await tx.wait();
-  const topic = iface.getEventTopic(eventName);
-  const log = receipt.logs.find((x) => x.topics[0] === topic);
-  if (!log) {
-    throw new Error(`No logs found for the topic of event "${eventName}".`);
-  }
-  return iface.parseLog(log) as LogDescription & (T | LogDescription);
-}
-
-const EVENTS = {
-  PluginRepoRegistered: "PluginRepoRegistered",
-  DAORegistered: "DAORegistered",
-  InstallationPrepared: "InstallationPrepared",
-  InstallationApplied: "InstallationApplied",
-  UpdateApplied: "UpdateApplied",
-  UninstallationApplied: "UninstallationApplied",
-  MetadataSet: "MetadataSet",
-  TrustedForwarderSet: "TrustedForwarderSet",
-  NewURI: "NewURI",
-  Revoked: "Revoked",
-  Granted: "Granted",
-};
-
-async function extractInfoFromCreateDaoTx(tx: ethers.ContractTransaction): Promise<{
-  dao: any;
-  creator: any;
-  subdomain: any;
-  plugin: any;
-  helpers: any;
-  permissions: any;
-}> {
-  const daoRegisteredEvent = await findEventTopicLog<DAORegisteredEvent>(
-    tx,
-    MockDAOFactory__factory.createInterface(),
-    EVENTS.DAORegistered
-  );
-
-  const installationPreparedEvent = await findEventTopicLog<InstallationPreparedEvent>(
-    tx,
-    MockPluginSetupProcessor__factory.createInterface(),
-    EVENTS.InstallationPrepared
-  );
-
-  return {
-    dao: daoRegisteredEvent.args.dao,
-    creator: daoRegisteredEvent.args.creator,
-    subdomain: daoRegisteredEvent.args.subdomain,
-    plugin: installationPreparedEvent.args.plugin,
-    helpers: installationPreparedEvent.args.preparedSetupData.helpers,
-    permissions: installationPreparedEvent.args.preparedSetupData.permissions,
-  };
-}
-
-async function deployDAOAndAdmin(base: ChainBase): Promise<void> {
-  // use the OSx DAO factory with the Admin Plugin
-  const data = ethers.utils.defaultAbiCoder.encode(["address"], [base.deployer.address]);
-  const createDaoTx = await base.daoFactory.createDao(mockDAOSettings, mockPluginSettings(data));
-  // console.warn("Might need to await for the transaction to be mined", receipt.transactionHash);
-  const info = await extractInfoFromCreateDaoTx(createDaoTx);
-
-  base.dao = info.dao;
-  base.admin = Admin__factory.connect(info.plugin, base.deployer);
-}
-
-async function prepareUninstallAdmin(base: ChainBase): Promise<void> {
-  // psp will use the admin setup in next call
-  await base.psp.queueSetup(base.adminSetup.address);
-
-  const payload: IPluginSetup.SetupPayloadStruct = {
-    plugin: base.admin.address,
-    currentHelpers: [],
-    data: "0x",
-  };
-
-  const { permissions, tx } = await prepareUninstall(base, payload);
-}
-
-function mockPrepareInstallationParams(data: string): MockPluginSetupProcessor.PrepareInstallationParamsStruct {
-  return {
-    pluginSetupRef: mockPluginSetupRef,
-    data: data,
-  };
-}
-
-function mockApplyInstallationParams(
-  plugin: string,
-  permissions: PermissionLib.MultiTargetPermissionStruct[]
-): MockPluginSetupProcessor.ApplyInstallationParamsStruct {
-  return {
-    pluginSetupRef: mockPluginSetupRef,
-    plugin: plugin,
-    permissions: permissions,
-    helpersHash: ethers.utils.formatBytes32String("helpersHash"),
-  };
-}
-
-function mockPrepareUninstallationParams(
-  payload: IPluginSetup.SetupPayloadStruct
-): MockPluginSetupProcessor.PrepareUninstallationParamsStruct {
-  return {
-    pluginSetupRef: mockPluginSetupRef,
-    setupPayload: payload,
-  };
-}
-
-function mockApplyUninstallationParams(
-  plugin: string,
-  permissions: PermissionLib.MultiTargetPermissionStruct[]
-): MockPluginSetupProcessor.ApplyUninstallationParamsStruct {
-  return {
-    plugin: plugin,
-    pluginSetupRef: mockPluginSetupRef,
-    permissions: permissions,
-  };
-}
-
-// callstatic to return the permissions and the tx to apply the installation
-async function prepareUninstall(
-  base: ChainBase,
-  payload: IPluginSetup.SetupPayloadStruct
-): Promise<{ permissions: PermissionLib.MultiTargetPermissionStruct[]; tx: ethers.ContractTransaction }> {
-  const [permissions, tx] = await Promise.all([
-    base.psp.callStatic.prepareUninstallation(base.dao.address, mockPrepareUninstallationParams(payload)),
-    base.psp.prepareUninstallation(base.dao.address, mockPrepareUninstallationParams(payload)),
-  ]);
-
-  base.adminUninstallPermissions = permissions;
-
-  return { permissions, tx };
-}
-
-async function setupExecutionChain(): Promise<ExecutionChain> {
-  const base = new ChainBase("Ethereum", 80085, getWallet(LOCAL_RICH_WALLETS[0].privateKey), 1);
-
-  const e = new ExecutionChain(base);
-
-  await deployOSX(e.base);
-  await deployDAOAndAdmin(e.base);
-
-  return e;
-}
-
-async function setupVotingChain(): Promise<VotingChain> {
-  const base = new ChainBase("ZkSync", 80085, getWallet(LOCAL_RICH_WALLETS[0].privateKey), 2);
-
-  const v = new VotingChain(base);
-
-  await deployOSX(v.base);
-  await deployDAOAndAdmin(v.base);
-
-  return v;
-}
-
-async function _deployLayerZero(executionChain: ChainBase, votingChain: ChainBase): Promise<void> {
-  const endpointExecutionChain = await new EndpointV2LocalMock__factory(executionChain.deployer).deploy(
-    executionChain.eid
-  );
-  const endpointVotingChain = await new EndpointV2LocalMock__factory(votingChain.deployer).deploy(votingChain.eid);
-
-  executionChain.lzEndpoint = endpointExecutionChain.address;
-  votingChain.lzEndpoint = endpointVotingChain.address;
-}
-
-async function deployNewDAO(): Promise<void> {
-  await deployContract("DAO", [], { wallet: getWallet(LOCAL_RICH_WALLETS[0].privateKey) });
-}
+const GAS_BRIDGE_TOKENS = 250_000n; // Replace with actual value
+const GAS_DISPATCH_VOTES = 500_000n; // Replace with actual value
+const GAS_XCHAIN_PROPOSAL = 500_000n; // Replace with actual value
+const initialDeal = ethers.utils.parseEther("1000000"); // Replace with actual value
+const transferAmount = ethers.utils.parseEther("100000"); // Replace with actual value
 
 describe("Toucan Voting ZkSync Test", function () {
   it("should deploy the DAO and Admin", async function () {
+    const provider = getTestProvider();
+
     const e = await setupExecutionChain();
-    // const v = await setupVotingChain();
-    // await _deployLayerZero(e.base, v.base);
+    const v = await setupVotingChain();
+    await _deployLayerZero(e.base, v.base);
+
+    // execution chain
+    await prepareSetupToucanVoting(e);
+    await prepareSetupReceiver(e);
+    await prepareUninstallAdmin(e.base);
+
+    // voting chain
+    await prepareSetupRelay(v, e);
+    await prepareSetupAdminXChain(v);
+    await prepareUninstallAdmin(v.base);
+
+    // now set endpoint with mock
+    await wireLayerZero(e, v);
+
+    // // apply installs and set peers
+    await applyInstallationsSetPeersRevokeAdminExecutionChain(e, v);
+    await applyInstallationsSetPeersRevokeAdminVotingChain(v, e);
+    console.log("done applying installations and setting peers");
+
+    let hasExecute = await v.base.dao.isGranted(
+      v.base.dao.address,
+      v.adminXChain.address,
+      await v.base.dao.EXECUTE_PERMISSION_ID(),
+      "0x"
+    );
+
+    expect(hasExecute).to.eq(true, "Plugin doesn't have execute");
+
+    // bridge tokens
+    await bridgeTokens(e, v);
+    console.log("done bridging tokens");
+
+    // create proposal
+    const proposalId = await createProposal(e, v);
+    console.log("done creating proposal");
+
+    // vote and dispatch
+    await voteAndDispatch(e, v, proposalId);
+    console.log("done voting and dispatching");
+
+    // execute proposal
+    await executeBridgeProposal(e, v, proposalId);
+
+    // check the adminXChain no longer has execute on the voting chain dao
+    hasExecute = await v.base.dao.isGranted(
+      v.base.dao.address,
+      v.adminXChain.address,
+      await v.base.dao.EXECUTE_PERMISSION_ID(),
+      "0x"
+    );
+    expect(hasExecute).to.eq(false, "Plugin still has execute");
   });
 });
+
+export function getTestProvider(): Provider {
+  const network = hre.userConfig.networks?.inMemoryNode;
+  return new Provider((network as HttpNetworkUserConfig).url);
+}
+
+const executionWallet = getWallet(EXECUTION_VOTER.privateKey);
+const votingWallet = getWallet(VOTING_VOTER.privateKey);
+
+export const getLzOptions = (gasLimit: bigint) =>
+  Options.newOptions().addExecutorLzReceiveOption(gasLimit, 0).toHex().toString() as `0x${string}`;
+
+async function bridgeTokens(e: ExecutionChain, v: VotingChain): Promise<void> {
+  // Ensure the execution chain voter has the initial tokens
+  const execVoterBalance = await e.token.balanceOf(e.base.voter);
+
+  expect(execVoterBalance.eq(initialDeal)).to.equal(true, `voter balance != ${initialDeal}`);
+
+  // send the voter some tokens to bridge
+  await e.token.connect(executionWallet).transfer(v.base.voter, transferAmount);
+
+  const votingVoterBalance = await e.token.balanceOf(v.base.voter);
+  const votingVoterBalanceVChain = await v.token.balanceOf(v.base.voter);
+  expect(votingVoterBalance.eq(transferAmount)).to.equal(true, `voting voter balance != ${transferAmount}`);
+  expect(votingVoterBalanceVChain.eq(0)).to.equal(true, `voting voter balance vchain != 0`);
+
+  // Send the tokens to the voting chain
+  const options = getLzOptions(GAS_BRIDGE_TOKENS);
+  const sendParams: SendParamStruct = {
+    dstEid: v.base.eid,
+    to: addressToBytes32(v.base.voter),
+    amountLD: transferAmount,
+    minAmountLD: transferAmount,
+    extraOptions: options,
+    composeMsg: "0x",
+    oftCmd: "0x",
+  };
+
+  const msgFee: MessagingFeeStruct = await e.adapter.quoteSend(sendParams, false);
+  const nativeFee = msgFee.nativeFee as ethers.BigNumber;
+  const lzTokenFee = msgFee.lzTokenFee as ethers.BigNumber;
+
+  expect(lzTokenFee.eq(0)).to.equal(true, `lzTokenFee != 0`);
+  expect(nativeFee.gt(0)).to.equal(true, `nativeFee <= 0`);
+
+  await e.token.connect(votingWallet).approve(e.adapter.address, transferAmount);
+  await e.adapter.connect(votingWallet).send(sendParams, msgFee, e.base.deployer.address, { value: nativeFee });
+
+  // Check that the tokens were received
+  const finalBalance = await v.token.balanceOf(v.base.voter);
+  const finalBalanceEChain = await e.token.balanceOf(v.base.voter);
+
+  expect(finalBalance.eq(transferAmount)).to.equal(true, `final balance != ${transferAmount}`);
+  expect(finalBalanceEChain.eq(0)).to.equal(true, `final balance echain != 0`);
+}
+
+async function createProposal(e: ExecutionChain, v: VotingChain): Promise<ethers.BigNumber> {
+  const blockNumber = 100;
+  const blockTimestamp = 100;
+
+  const provider = getTestProvider();
+  // https://github.com/matter-labs/era-test-node/blob/main/e2e-tests/test/evm-apis.test.ts
+  // for (let i = 0; i < blockNumber; i++) {
+  //   await provider.send("evm_mine", []);
+  // }
+
+  // had a lot of funny issues here but the below appears to work
+  await provider.send("evm_setTime", [blockTimestamp]);
+  await provider.send("evm_mine", []);
+
+  const votes = { yes: 100_000, no: 200_000, abstain: 300_000 }; // Tally structure
+
+  const actions = await createUninstallationProposal(e, v);
+
+  const proposalId = await e.voting.connect(executionWallet).callStatic.createProposal(
+    "0x",
+    actions,
+    0,
+    0, // start immediate
+    blockTimestamp + 10 * 24 * 60 * 60, //  end 10 days from now
+    votes,
+    false
+  );
+
+  const tx = await e.voting.connect(executionWallet).createProposal(
+    "0x",
+    actions,
+    0,
+    0, // start immediate
+    blockTimestamp + 10 * 24 * 60 * 60, //  end 10 days from now
+    votes,
+    false
+  );
+
+  await tx.wait();
+
+  return proposalId;
+}
+
+async function voteAndDispatch(e: ExecutionChain, v: VotingChain, proposalId: BigNumber): Promise<void> {
+  const provider = getTestProvider();
+  const blockTimestamp = await provider.getBlock("latest").then((block) => block.timestamp);
+
+  // Warp it forward 1 second to allow voting
+  await provider.send("evm_setTime", [blockTimestamp + 1]);
+  await provider.send("evm_mine", []);
+
+  const proposalRef = await e.receiver["getProposalRef(uint256)"](proposalId);
+
+  // Cast the vote
+  await v.relay.connect(votingWallet).vote(proposalRef, { no: 0, yes: transferAmount, abstain: 0 });
+
+  // Get a cross-chain quote
+  const quote = await v.relay.connect(votingWallet).quote(proposalRef, GAS_DISPATCH_VOTES);
+
+  // Dispatch the votes
+  const tx = await v.relay.connect(votingWallet).dispatchVotes(proposalRef, quote, { value: quote.fee.nativeFee });
+
+  // check the votes were recorded
+  const proposal = await e.voting.getProposal(proposalId);
+
+  expect(proposal.tally.no.eq(200_000)).to.equal(true, `no votes != 200_000`);
+  expect(proposal.tally.yes.eq(BigNumber.from(100_000).add(transferAmount))).to.equal(
+    true,
+    `yes votes != ${transferAmount} plus 100k`
+  );
+  expect(proposal.tally.abstain.eq(300_000)).to.equal(true, `abstain votes != 300k`);
+}
+
+async function executeBridgeProposal(e: ExecutionChain, v: VotingChain, proposalId: BigNumber): Promise<void> {
+  const provider = getTestProvider();
+  const blockTimestamp = await provider.getBlock("latest").then((block) => block.timestamp);
+
+  // Warp it forward 10 days to the end of the proposal
+  await provider.send("evm_setTime", [blockTimestamp + 10 * 24 * 60 * 60]);
+  await provider.send("evm_mine", []);
+
+  // Send the DAO some cash to pay for the cross-chain fees
+  const tx = {
+    to: e.base.dao.address,
+    value: ethers.utils.parseEther("10"), // 10 ether
+  };
+  const transactionResponse = await executionWallet.sendTransaction(tx);
+  await transactionResponse.wait();
+
+  // Check if the transaction was successful
+  const daoBalance = await e.base.deployer.provider.getBalance(e.base.dao.address);
+  expect(daoBalance.eq(ethers.utils.parseEther("10"))).to.equal(
+    true,
+    `dao balance != ${ethers.utils.parseEther("10")}`
+  );
+
+  // // Execute the proposal
+  const tx2 = await e.voting.connect(executionWallet).execute(proposalId);
+  await tx2.wait();
+}
+
+async function createUninstallationProposal(e: ExecutionChain, v: VotingChain): Promise<IDAO.ActionStruct[]> {
+  const proposalCount = await e.voting.proposalCount();
+  const executePermissionId = await v.base.dao.EXECUTE_PERMISSION_ID();
+
+  const innerActions: IDAO.ActionStruct[] = [
+    {
+      to: v.base.dao.address,
+      value: 0,
+      data: v.base.dao.interface.encodeFunctionData("revoke", [
+        v.base.dao.address,
+        v.adminXChain.address,
+        executePermissionId,
+      ]),
+    },
+  ];
+
+  const params = await e.actionRelay.quote(
+    proposalCount, // proposal id that will be created
+    innerActions,
+    0, // allowFailureMap
+    v.base.eid,
+    GAS_XCHAIN_PROPOSAL
+  );
+
+  const actions: IDAO.ActionStruct[] = [
+    {
+      to: e.actionRelay.address,
+      value: params.fee.nativeFee,
+      data: e.actionRelay.interface.encodeFunctionData("relayActions", [
+        proposalCount,
+        innerActions,
+        0, // allowFailureMap
+        params,
+      ]),
+    },
+  ];
+
+  return actions;
+}
