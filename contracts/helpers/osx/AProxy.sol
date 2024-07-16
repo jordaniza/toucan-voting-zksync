@@ -1,17 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.17;
 
-import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-
-import {IDAO} from "@aragon/osx/core/dao/IDAO.sol";
-import {IProtocolVersion} from "@aragon/osx/utils/protocol/IProtocolVersion.sol";
-import {ProtocolVersion} from "@aragon/osx/utils/protocol/ProtocolVersion.sol";
-import {IPluginSetup} from "@aragon/osx/framework/plugin/setup/IPluginSetup.sol";
-import {PermissionLib} from "@aragon/osx/core/permission/PermissionLib.sol";
-import {ProxyLib} from "contracts/libs/ProxyLib.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
+import {Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Upgrade} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
 contract AProxy is Proxy, ERC1967Upgrade {
     /**
@@ -36,4 +28,8 @@ contract AProxy is Proxy, ERC1967Upgrade {
     {
         return ERC1967Upgrade._getImplementation();
     }
+}
+
+function createAProxy(address _logic, bytes memory _data) returns (address) {
+    return address(new AProxy(_logic, _data));
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.17;
 
 import {IOFT} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oft/interfaces/IOFT.sol";
 import {IOAppCore, ILayerZeroEndpointV2} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oapp/interfaces/IOAppCore.sol";
@@ -43,7 +43,8 @@ contract ToucanRelaySetup is PluginSetup {
     error IncorrectHelpersLength(uint8 expected, uint8 actual);
 
     /// @notice The ID of the permission required to call admin functions on the bridge and the relay.
-    bytes32 public constant OAPP_ADMINISTRATOR_ID = keccak256("OAPP_ADMINISTRATOR");
+    bytes32 public constant OAPP_ADMINISTRATOR_ID =
+        keccak256("OAPP_ADMINISTRATOR");
 
     /// @notice address of the token bridge implementation.
     address public immutable bridgeBase;
@@ -80,9 +81,15 @@ contract ToucanRelaySetup is PluginSetup {
     function prepareInstallation(
         address _dao,
         bytes calldata _data
-    ) external returns (address plugin, PreparedSetupData memory preparedSetupData) {
+    )
+        external
+        returns (address plugin, PreparedSetupData memory preparedSetupData)
+    {
         // decode the data
-        InstallationParams memory params = abi.decode(_data, (InstallationParams));
+        InstallationParams memory params = abi.decode(
+            _data,
+            (InstallationParams)
+        );
 
         // check the token name and symbol are not empty
         if (isEmpty(params.tokenName) || isEmpty(params.tokenSymbol))
@@ -97,13 +104,22 @@ contract ToucanRelaySetup is PluginSetup {
         );
 
         address bridge = bridgeBase.deployUUPSProxy(
-            abi.encodeCall(OFTTokenBridge.initialize, (token, params.lzEndpoint, _dao))
+            abi.encodeCall(
+                OFTTokenBridge.initialize,
+                (token, params.lzEndpoint, _dao)
+            )
         );
 
         plugin = relayBase.deployUUPSProxy(
             abi.encodeCall(
                 ToucanRelay.initialize,
-                (token, params.lzEndpoint, _dao, params.dstEid, params.votingBridgeBuffer)
+                (
+                    token,
+                    params.lzEndpoint,
+                    _dao,
+                    params.dstEid,
+                    params.votingBridgeBuffer
+                )
             )
         );
 
@@ -175,7 +191,11 @@ contract ToucanRelaySetup is PluginSetup {
     function prepareUninstallation(
         address _dao,
         SetupPayload calldata _payload
-    ) external pure returns (PermissionLib.MultiTargetPermission[] memory permissions) {
+    )
+        external
+        pure
+        returns (PermissionLib.MultiTargetPermission[] memory permissions)
+    {
         // fetch the bridge address
         address[] memory currentHelpers = _payload.currentHelpers;
         if (currentHelpers.length != 2) {

@@ -244,12 +244,11 @@ async function deployDAOAndAdmin(base: ChainBase): Promise<void> {
   // use the OSx DAO factory with the Admin Plugin
   const data = ethers.utils.defaultAbiCoder.encode(["address"], [base.deployer.address]);
   const createDaoTx = await base.daoFactory.createDao(mockDAOSettings, mockPluginSettings(data));
-  // const receipt = await createDaoTx.wait();
   // console.warn("Might need to await for the transaction to be mined", receipt.transactionHash);
-  // const info = await extractInfoFromCreateDaoTx(createDaoTx);
+  const info = await extractInfoFromCreateDaoTx(createDaoTx);
 
-  // base.dao = info.dao;
-  // base.admin = Admin__factory.connect(info.plugin, base.deployer);
+  base.dao = info.dao;
+  base.admin = Admin__factory.connect(info.plugin, base.deployer);
 }
 
 async function prepareUninstallAdmin(base: ChainBase): Promise<void> {
@@ -357,55 +356,8 @@ async function deployNewDAO(): Promise<void> {
 
 describe("Toucan Voting ZkSync Test", function () {
   it("should deploy the DAO and Admin", async function () {
-    // await deployNewDAO();
     const e = await setupExecutionChain();
     // const v = await setupVotingChain();
     // await _deployLayerZero(e.base, v.base);
-  });
-
-  it("deploy T", async () => {
-    const wallet = getWallet(LOCAL_RICH_WALLETS[0].privateKey);
-    const t = (await deployContract("T", [], { wallet })) as T;
-
-    await t.setA();
-    const a = await t.a();
-    expect(a).to.be.equal(true);
-  });
-
-  it("deploy T thru D", async () => {
-    const wallet = getWallet(LOCAL_RICH_WALLETS[0].privateKey);
-    const d = (await deployContract("D", [], { wallet })) as D;
-
-    await d.create();
-
-    const t = await d.xyz();
-
-    const tconnected = T__factory.connect(t, wallet);
-
-    await tconnected.setA();
-
-    const a = await tconnected.a();
-
-    expect(a).to.be.equal(true);
-  });
-
-  it("deploy T as proxy", async () => {
-    const wallet = getWallet(LOCAL_RICH_WALLETS[0].privateKey);
-    // const t = (await deployContract("T", [], { wallet })) as T;
-    // const proxy = await deployContract("ERC1967Proxy", [t.address, "0x"], { wallet });
-    const ptFactory = (await deployContract("PTFactory", [], { wallet })) as PTFactory;
-    await ptFactory.createPT();
-    const ptCreated = await ptFactory.ptCreated();
-    const pt = T__factory.connect(ptCreated, wallet);
-    const a = await pt.a();
-    expect(a).to.be.equal(true);
-
-    await ptFactory.createDAO();
-
-    const dao = await ptFactory.daoCreated();
-
-    const daoContract = DAO__factory.connect(dao, wallet);
-
-    console.log({ woah: await daoContract.UPGRADE_DAO_PERMISSION_ID() });
   });
 });

@@ -47,12 +47,13 @@ const config: HardhatUserConfig = {
     },
   },
   solidity: {
+    // be careful here: different compilers can make it impossible for the
+    // zkEvm to find the correct contract code
     compilers: [
-      {
-        version: "0.8.20",
-      },
+      // {
+      // version: "0.8.20",
+      // },
       { version: "0.8.17" },
-      { version: "0.8.22" },
     ],
   },
   typechain: {

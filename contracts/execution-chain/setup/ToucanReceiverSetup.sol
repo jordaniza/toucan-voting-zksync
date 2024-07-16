@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.17;
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {IVotesUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/utils/IVotesUpgradeable.sol";
@@ -33,10 +33,12 @@ contract ToucanReceiverSetup is PluginSetup {
     using ProxyLib for address;
 
     /// @notice The identifier of the `EXECUTE_PERMISSION` permission.
-    bytes32 public constant EXECUTE_PERMISSION_ID = keccak256("EXECUTE_PERMISSION");
+    bytes32 public constant EXECUTE_PERMISSION_ID =
+        keccak256("EXECUTE_PERMISSION");
 
     /// @notice The identifier of the `OAPP_ADMINISTRATOR` permission.
-    bytes32 public constant OAPP_ADMINISTRATOR_ID = keccak256("OAPP_ADMINISTRATOR");
+    bytes32 public constant OAPP_ADMINISTRATOR_ID =
+        keccak256("OAPP_ADMINISTRATOR");
 
     /// @notice The interface ID of the `IToucanVoting` interface.
     bytes4 public constant TOKEN_VOTING_INTERFACE_ID = 0x6122753f;
@@ -81,8 +83,14 @@ contract ToucanReceiverSetup is PluginSetup {
     function prepareInstallation(
         address _dao,
         bytes calldata _data
-    ) external returns (address plugin, PreparedSetupData memory preparedSetupData) {
-        (address lzEndpoint, address _votingPlugin) = abi.decode(_data, (address, address));
+    )
+        external
+        returns (address plugin, PreparedSetupData memory preparedSetupData)
+    {
+        (address lzEndpoint, address _votingPlugin) = abi.decode(
+            _data,
+            (address, address)
+        );
 
         // check the voting plugin and fetch the associated token
         ToucanVoting votingPlugin = validateVotingPlugin(_votingPlugin);
@@ -90,11 +98,17 @@ contract ToucanReceiverSetup is PluginSetup {
 
         // deploy our plugin, adapter and action relay
         plugin = toucanReceiverBase.deployUUPSProxy(
-            abi.encodeCall(ToucanReceiver.initialize, (token, lzEndpoint, _dao, _votingPlugin))
+            abi.encodeCall(
+                ToucanReceiver.initialize,
+                (token, lzEndpoint, _dao, _votingPlugin)
+            )
         );
 
         address adapter = oftAdapterBase.deployUUPSProxy(
-            abi.encodeCall(GovernanceOFTAdapter.initialize, (token, plugin, lzEndpoint, _dao))
+            abi.encodeCall(
+                GovernanceOFTAdapter.initialize,
+                (token, plugin, lzEndpoint, _dao)
+            )
         );
 
         address actionRelay = actionRelayBase.deployUUPSProxy(
@@ -102,13 +116,14 @@ contract ToucanReceiverSetup is PluginSetup {
         );
 
         // encode our setup data with permissions and helpers
-        PermissionLib.MultiTargetPermission[] memory permissions = getPermissions(
-            _dao,
-            payable(plugin),
-            adapter,
-            actionRelay,
-            PermissionLib.Operation.Grant
-        );
+        PermissionLib.MultiTargetPermission[]
+            memory permissions = getPermissions(
+                _dao,
+                payable(plugin),
+                adapter,
+                actionRelay,
+                PermissionLib.Operation.Grant
+            );
 
         address[] memory helpers = new address[](2);
         helpers[0] = adapter;
@@ -131,7 +146,10 @@ contract ToucanReceiverSetup is PluginSetup {
             revert InvalidInterface();
         }
 
-        if (!(uint(votingPlugin.votingMode()) == uint(IToucanVoting.VotingMode.VoteReplacement))) {
+        if (
+            !(uint(votingPlugin.votingMode()) ==
+                uint(IToucanVoting.VotingMode.VoteReplacement))
+        ) {
             revert NotInVoteReplacementMode();
         }
 
@@ -142,7 +160,11 @@ contract ToucanReceiverSetup is PluginSetup {
     function prepareUninstallation(
         address _dao,
         SetupPayload calldata _payload
-    ) external view returns (PermissionLib.MultiTargetPermission[] memory permissions) {
+    )
+        external
+        view
+        returns (PermissionLib.MultiTargetPermission[] memory permissions)
+    {
         // check the helpers length
         if (_payload.currentHelpers.length != 2) {
             revert WrongHelpersArrayLength(_payload.currentHelpers.length);

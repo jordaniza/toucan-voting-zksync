@@ -28,7 +28,8 @@ contract MockPluginSetupProcessor {
         keccak256("APPLY_INSTALLATION_PERMISSION");
 
     /// @notice The ID of the permission required to call the `applyUpdate` function.
-    bytes32 public constant APPLY_UPDATE_PERMISSION_ID = keccak256("APPLY_UPDATE_PERMISSION");
+    bytes32 public constant APPLY_UPDATE_PERMISSION_ID =
+        keccak256("APPLY_UPDATE_PERMISSION");
 
     /// @notice The ID of the permission required to call the `applyUninstallation` function.
     bytes32 public constant APPLY_UNINSTALLATION_PERMISSION_ID =
@@ -132,7 +133,11 @@ contract MockPluginSetupProcessor {
     /// @param caller The address (EOA or contract) that requested the application of a setup on the associated DAO.
     /// @param permissionId The permission identifier.
     /// @dev This is thrown if the `APPLY_INSTALLATION_PERMISSION_ID`, `APPLY_UPDATE_PERMISSION_ID`, or APPLY_UNINSTALLATION_PERMISSION_ID is missing.
-    error SetupApplicationUnauthorized(address dao, address caller, bytes32 permissionId);
+    error SetupApplicationUnauthorized(
+        address dao,
+        address caller,
+        bytes32 permissionId
+    );
 
     /// @notice Thrown if a plugin is not upgradeable.
     /// @param plugin The address of the plugin contract.
@@ -142,7 +147,11 @@ contract MockPluginSetupProcessor {
     /// @param proxy The address of the proxy.
     /// @param implementation The address of the implementation contract.
     /// @param initData The initialization data to be passed to the upgradeable plugin contract via `upgradeToAndCall`.
-    error PluginProxyUpgradeFailed(address proxy, address implementation, bytes initData);
+    error PluginProxyUpgradeFailed(
+        address proxy,
+        address implementation,
+        bytes initData
+    );
 
     /// @notice Thrown if a contract does not support the `IPlugin` interface.
     /// @param plugin The address of the contract.
@@ -162,7 +171,10 @@ contract MockPluginSetupProcessor {
     /// @notice Thrown if the update version is invalid.
     /// @param currentVersionTag The tag of the current version to update from.
     /// @param newVersionTag The tag of the new version to update to.
-    error InvalidUpdateVersion(PluginRepo.Tag currentVersionTag, PluginRepo.Tag newVersionTag);
+    error InvalidUpdateVersion(
+        PluginRepo.Tag currentVersionTag,
+        PluginRepo.Tag newVersionTag
+    );
 
     /// @notice Thrown if plugin is already installed and one tries to prepare or apply install on it.
     error PluginAlreadyInstalled();
@@ -170,7 +182,10 @@ contract MockPluginSetupProcessor {
     /// @notice Thrown if the applied setup ID resulting from the supplied setup payload does not match with the current applied setup ID.
     /// @param currentAppliedSetupId The current applied setup ID with which the data in the supplied payload must match.
     /// @param appliedSetupId The applied setup ID obtained from the data in the supplied setup payload.
-    error InvalidAppliedSetupId(bytes32 currentAppliedSetupId, bytes32 appliedSetupId);
+    error InvalidAppliedSetupId(
+        bytes32 currentAppliedSetupId,
+        bytes32 appliedSetupId
+    );
 
     /// @notice Emitted with a prepared plugin installation to store data relevant for the application step.
     /// @param sender The sender that prepared the plugin installation.
@@ -300,7 +315,13 @@ contract MockPluginSetupProcessor {
     function prepareInstallation(
         address _dao,
         PrepareInstallationParams calldata _params
-    ) external returns (address plugin, IPluginSetup.PreparedSetupData memory preparedSetupData) {
+    )
+        external
+        returns (
+            address plugin,
+            IPluginSetup.PreparedSetupData memory preparedSetupData
+        )
+    {
         // PluginRepo pluginSetupRepo = _params.pluginSetupRef.pluginSetupRepo;
 
         // // Check that the plugin repository exists on the plugin repo registry.
@@ -314,10 +335,8 @@ contract MockPluginSetupProcessor {
         // );
 
         // Prepare the installation
-        (plugin, preparedSetupData) = PluginSetup(popSetup()).prepareInstallation(
-            _dao,
-            _params.data
-        );
+        (plugin, preparedSetupData) = PluginSetup(popSetup())
+            .prepareInstallation(_dao, _params.data);
 
         // bytes32 pluginInstallationId = _getPluginInstallationId(_dao, plugin);
 
@@ -343,16 +362,16 @@ contract MockPluginSetupProcessor {
 
         // pluginState.preparedSetupIdToBlockNumber[preparedSetupId] = block.number;
 
-        // emit InstallationPrepared({
-        //     sender: msg.sender,
-        //     dao: _dao,
-        //     preparedSetupId: preparedSetupId,
-        //     pluginSetupRepo: pluginSetupRepo,
-        //     versionTag: _params.pluginSetupRef.versionTag,
-        //     data: _params.data,
-        //     plugin: plugin,
-        //     preparedSetupData: preparedSetupData
-        // });
+        emit InstallationPrepared({
+            sender: msg.sender,
+            dao: _dao,
+            preparedSetupId: bytes32(0),
+            pluginSetupRepo: PluginRepo(address(0)),
+            versionTag: _params.pluginSetupRef.versionTag,
+            data: _params.data,
+            plugin: plugin,
+            preparedSetupData: preparedSetupData
+        });
 
         return (plugin, preparedSetupData);
     }
@@ -412,10 +431,14 @@ contract MockPluginSetupProcessor {
         PrepareUpdateParams calldata _params
     )
         external
-        returns (bytes memory initData, IPluginSetup.PreparedSetupData memory preparedSetupData)
+        returns (
+            bytes memory initData,
+            IPluginSetup.PreparedSetupData memory preparedSetupData
+        )
     {
         if (
-            _params.currentVersionTag.release != _params.newVersionTag.release ||
+            _params.currentVersionTag.release !=
+            _params.newVersionTag.release ||
             _params.currentVersionTag.build >= _params.newVersionTag.build
         ) {
             revert InvalidUpdateVersion({
@@ -424,11 +447,16 @@ contract MockPluginSetupProcessor {
             });
         }
 
-        bytes32 pluginInstallationId = _getPluginInstallationId(_dao, _params.setupPayload.plugin);
+        bytes32 pluginInstallationId = _getPluginInstallationId(
+            _dao,
+            _params.setupPayload.plugin
+        );
 
         PluginState storage pluginState = states[pluginInstallationId];
 
-        bytes32 currentHelpersHash = hashHelpers(_params.setupPayload.currentHelpers);
+        bytes32 currentHelpersHash = hashHelpers(
+            _params.setupPayload.currentHelpers
+        );
 
         bytes32 appliedSetupId = _getAppliedSetupId(
             PluginSetupRef(_params.currentVersionTag, _params.pluginSetupRepo),
@@ -444,13 +472,13 @@ contract MockPluginSetupProcessor {
             });
         }
 
-        PluginRepo.Version memory currentVersion = _params.pluginSetupRepo.getVersion(
-            _params.currentVersionTag
-        );
+        PluginRepo.Version memory currentVersion = _params
+            .pluginSetupRepo
+            .getVersion(_params.currentVersionTag);
 
-        PluginRepo.Version memory newVersion = _params.pluginSetupRepo.getVersion(
-            _params.newVersionTag
-        );
+        PluginRepo.Version memory newVersion = _params
+            .pluginSetupRepo
+            .getVersion(_params.newVersionTag);
 
         bytes32 preparedSetupId;
 
@@ -472,19 +500,31 @@ contract MockPluginSetupProcessor {
             preparedSetupData.helpers = _params.setupPayload.currentHelpers;
         } else {
             // Check that plugin is `PluginUUPSUpgradable`.
-            if (!_params.setupPayload.plugin.supportsInterface(type(IPlugin).interfaceId)) {
-                revert IPluginNotSupported({plugin: _params.setupPayload.plugin});
+            if (
+                !_params.setupPayload.plugin.supportsInterface(
+                    type(IPlugin).interfaceId
+                )
+            ) {
+                revert IPluginNotSupported({
+                    plugin: _params.setupPayload.plugin
+                });
             }
-            if (IPlugin(_params.setupPayload.plugin).pluginType() != IPlugin.PluginType.UUPS) {
-                revert PluginNonupgradeable({plugin: _params.setupPayload.plugin});
+            if (
+                IPlugin(_params.setupPayload.plugin).pluginType() !=
+                IPlugin.PluginType.UUPS
+            ) {
+                revert PluginNonupgradeable({
+                    plugin: _params.setupPayload.plugin
+                });
             }
 
             // Prepare the update.
-            (initData, preparedSetupData) = PluginSetup(newVersion.pluginSetup).prepareUpdate(
-                _dao,
-                _params.currentVersionTag.build,
-                _params.setupPayload
-            );
+            (initData, preparedSetupData) = PluginSetup(newVersion.pluginSetup)
+                .prepareUpdate(
+                    _dao,
+                    _params.currentVersionTag.build,
+                    _params.setupPayload
+                );
 
             preparedSetupId = _getPreparedSetupId(
                 PluginSetupRef(_params.newVersionTag, _params.pluginSetupRepo),
@@ -496,14 +536,24 @@ contract MockPluginSetupProcessor {
         }
 
         // Check if this setup has already been prepared before and is pending.
-        if (pluginState.blockNumber < pluginState.preparedSetupIdToBlockNumber[preparedSetupId]) {
+        if (
+            pluginState.blockNumber <
+            pluginState.preparedSetupIdToBlockNumber[preparedSetupId]
+        ) {
             revert SetupAlreadyPrepared({preparedSetupId: preparedSetupId});
         }
 
-        pluginState.preparedSetupIdToBlockNumber[preparedSetupId] = block.number;
+        pluginState.preparedSetupIdToBlockNumber[preparedSetupId] = block
+            .number;
 
         // Avoid stack too deep.
-        emitPrepareUpdateEvent(_dao, preparedSetupId, _params, preparedSetupData, initData);
+        emitPrepareUpdateEvent(
+            _dao,
+            preparedSetupId,
+            _params,
+            preparedSetupData,
+            initData
+        );
 
         return (initData, preparedSetupData);
     }
@@ -515,7 +565,10 @@ contract MockPluginSetupProcessor {
         address _dao,
         ApplyUpdateParams calldata _params
     ) external canApply(_dao, APPLY_UPDATE_PERMISSION_ID) {
-        bytes32 pluginInstallationId = _getPluginInstallationId(_dao, _params.plugin);
+        bytes32 pluginInstallationId = _getPluginInstallationId(
+            _dao,
+            _params.plugin
+        );
 
         PluginState storage pluginState = states[pluginInstallationId];
 
@@ -529,17 +582,23 @@ contract MockPluginSetupProcessor {
 
         validatePreparedSetupId(pluginInstallationId, preparedSetupId);
 
-        bytes32 appliedSetupId = _getAppliedSetupId(_params.pluginSetupRef, _params.helpersHash);
+        bytes32 appliedSetupId = _getAppliedSetupId(
+            _params.pluginSetupRef,
+            _params.helpersHash
+        );
 
         pluginState.blockNumber = block.number;
         pluginState.currentAppliedSetupId = appliedSetupId;
 
-        PluginRepo.Version memory version = _params.pluginSetupRef.pluginSetupRepo.getVersion(
-            _params.pluginSetupRef.versionTag
-        );
+        PluginRepo.Version memory version = _params
+            .pluginSetupRef
+            .pluginSetupRepo
+            .getVersion(_params.pluginSetupRef.versionTag);
 
-        address currentImplementation = PluginUUPSUpgradeable(_params.plugin).implementation();
-        address newImplementation = PluginSetup(version.pluginSetup).implementation();
+        address currentImplementation = PluginUUPSUpgradeable(_params.plugin)
+            .implementation();
+        address newImplementation = PluginSetup(version.pluginSetup)
+            .implementation();
 
         if (currentImplementation != newImplementation) {
             _upgradeProxy(_params.plugin, newImplementation, _params.initData);
@@ -566,7 +625,10 @@ contract MockPluginSetupProcessor {
     function prepareUninstallation(
         address _dao,
         PrepareUninstallationParams calldata _params
-    ) external returns (PermissionLib.MultiTargetPermission[] memory permissions) {
+    )
+        external
+        returns (PermissionLib.MultiTargetPermission[] memory permissions)
+    {
         // bytes32 pluginInstallationId = _getPluginInstallationId(_dao, _params.setupPayload.plugin);
 
         // PluginState storage pluginState = states[pluginInstallationId];
@@ -587,7 +649,10 @@ contract MockPluginSetupProcessor {
         //     _params.pluginSetupRef.versionTag
         // );
 
-        permissions = PluginSetup(popSetup()).prepareUninstallation(_dao, _params.setupPayload);
+        permissions = PluginSetup(popSetup()).prepareUninstallation(
+            _dao,
+            _params.setupPayload
+        );
 
         // bytes32 preparedSetupId = _getPreparedSetupId(
         //     _params.pluginSetupRef,
@@ -663,7 +728,10 @@ contract MockPluginSetupProcessor {
         bytes32 preparedSetupId
     ) public view {
         PluginState storage pluginState = states[pluginInstallationId];
-        if (pluginState.blockNumber >= pluginState.preparedSetupIdToBlockNumber[preparedSetupId]) {
+        if (
+            pluginState.blockNumber >=
+            pluginState.preparedSetupIdToBlockNumber[preparedSetupId]
+        ) {
             revert SetupNotApplicable({preparedSetupId: preparedSetupId});
         }
     }
@@ -679,7 +747,10 @@ contract MockPluginSetupProcessor {
     ) private {
         if (_initData.length > 0) {
             try
-                PluginUUPSUpgradeable(_proxy).upgradeToAndCall(_implementation, _initData)
+                PluginUUPSUpgradeable(_proxy).upgradeToAndCall(
+                    _implementation,
+                    _initData
+                )
             {} catch Error(string memory reason) {
                 revert(reason);
             } catch (bytes memory /*lowLevelData*/) {
@@ -690,9 +761,9 @@ contract MockPluginSetupProcessor {
                 });
             }
         } else {
-            try PluginUUPSUpgradeable(_proxy).upgradeTo(_implementation) {} catch Error(
-                string memory reason
-            ) {
+            try
+                PluginUUPSUpgradeable(_proxy).upgradeTo(_implementation)
+            {} catch Error(string memory reason) {
                 revert(reason);
             } catch (bytes memory /*lowLevelData*/) {
                 revert PluginProxyUpgradeFailed({
@@ -710,7 +781,12 @@ contract MockPluginSetupProcessor {
     function _canApply(address _dao, bytes32 _permissionId) private view {
         if (
             msg.sender != _dao &&
-            !DAO(payable(_dao)).hasPermission(address(this), msg.sender, _permissionId, bytes(""))
+            !DAO(payable(_dao)).hasPermission(
+                address(this),
+                msg.sender,
+                _permissionId,
+                bytes("")
+            )
         ) {
             revert SetupApplicationUnauthorized({
                 dao: _dao,

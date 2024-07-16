@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.17;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
@@ -173,24 +173,24 @@ contract MockDAOFactory {
                 )
             );
         }
-        // // Set the rest of DAO's permissions.
-        // _setDAOPermissions(createdDao);
-        // // Revoke the temporarly granted permissions.
-        // // Revoke Temporarly `ROOT_PERMISSION` from `pluginSetupProcessor`.
-        // createdDao.revoke(
-        //     address(createdDao),
-        //     address(pluginSetupProcessor),
-        //     rootPermissionID
-        // );
-        // // Revoke `APPLY_INSTALLATION_PERMISSION` on `pluginSetupProcessor` from this `DAOFactory` .
-        // createdDao.revoke(
-        //     address(pluginSetupProcessor),
-        //     address(this),
-        //     applyInstallationPermissionID
-        // );
-        // // Revoke Temporarly `ROOT_PERMISSION_ID` from `pluginSetupProcessor` that implicitly granted to this `DaoFactory`
-        // // at the create dao step `address(this)` being the initial owner of the new created DAO.
-        // createdDao.revoke(address(createdDao), address(this), rootPermissionID);
+        // Set the rest of DAO's permissions.
+        _setDAOPermissions(createdDao);
+        // Revoke the temporarly granted permissions.
+        // Revoke Temporarly `ROOT_PERMISSION` from `pluginSetupProcessor`.
+        createdDao.revoke(
+            address(createdDao),
+            address(pluginSetupProcessor),
+            rootPermissionID
+        );
+        // Revoke `APPLY_INSTALLATION_PERMISSION` on `pluginSetupProcessor` from this `DAOFactory` .
+        createdDao.revoke(
+            address(pluginSetupProcessor),
+            address(this),
+            applyInstallationPermissionID
+        );
+        // Revoke Temporarly `ROOT_PERMISSION_ID` from `pluginSetupProcessor` that implicitly granted to this `DaoFactory`
+        // at the create dao step `address(this)` being the initial owner of the new created DAO.
+        createdDao.revoke(address(createdDao), address(this), rootPermissionID);
     }
 
     // /// @notice Deploys a new DAO `ERC1967` proxy, and initialize it with this contract as the intial owner.

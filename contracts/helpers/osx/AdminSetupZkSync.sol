@@ -9,6 +9,7 @@ import {IDAO} from "@aragon/osx/core/dao/IDAO.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {PermissionLib} from "@aragon/osx/core/permission/PermissionLib.sol";
 import {Admin} from "@aragon/osx/plugins/governance/admin/Admin.sol";
+import {createAProxy} from "./AProxy.sol";
 
 /// @title AdminAddressSetup
 /// @author Aragon Association - 2022-2023
@@ -43,7 +44,7 @@ contract AdminSetupZkSync is PluginSetup {
             revert AdminAddressInvalid({admin: admin});
         }
 
-        plugin = createERC1967Proxy(
+        plugin = createAProxy(
             address(implementation_),
             abi.encodeWithSelector(Admin.initialize.selector, _dao)
         );
