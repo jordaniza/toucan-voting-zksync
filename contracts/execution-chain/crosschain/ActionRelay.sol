@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IDAO} from "@aragon/osx/core/dao/IDAO.sol";
-import {MessagingFee, MessagingReceipt} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {MessagingFee, MessagingReceipt} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";

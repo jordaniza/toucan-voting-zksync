@@ -2,11 +2,10 @@
 
 pragma solidity ^0.8.17;
 
-// import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 // import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 // import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import {AProxy} from "../helpers/osx/AProxy.sol";
 
 /// @title ProxyLib
 /// @author Aragon X - 2024
@@ -25,7 +24,7 @@ library ProxyLib {
         address _logic,
         bytes memory _initCalldata
     ) internal returns (address uupsProxy) {
-        uupsProxy = address(new AProxy({_logic: _logic, _data: _initCalldata}));
+        uupsProxy = address(new ERC1967Proxy({_logic: _logic, _data: _initCalldata}));
     }
 
     /// @notice Creates an [ERC-1167](https://eips.ethereum.org/EIPS/eip-1167) minimal proxy contract, also known as clones, pointing to a logic contract and allows to immediately initialize it.
@@ -42,6 +41,6 @@ library ProxyLib {
         //     minimalProxy.functionCall({data: _initCalldata});
         // }
         // TODO: replace with minimal proxy that doesn't use clones
-        return address(new AProxy({_logic: _logic, _data: _initCalldata}));
+        return address(new ERC1967Proxy({_logic: _logic, _data: _initCalldata}));
     }
 }

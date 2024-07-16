@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
+import {ILayerZeroComposer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroComposer.sol";
 
 /**
  * @title IOAppComposer

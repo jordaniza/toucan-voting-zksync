@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.17;
 
-import {Origin} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {Origin} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {ILayerZeroEndpoint} from "@layerzerolabs/lz-evm-v1-0.7/contracts/interfaces/ILayerZeroEndpoint.sol";
-import {AddressCast} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/AddressCast.sol";
+import {AddressCast} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/AddressCast.sol";
 
 import {AddressSizeConfig} from "./AddressSizeConfig.sol";
 import {MessageLibBase} from "../../MessageLibBase.sol";

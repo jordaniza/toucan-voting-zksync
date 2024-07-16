@@ -4,8 +4,8 @@ pragma solidity ^0.8.17;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {ISendLib} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {ISendLib} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
 import {ILayerZeroTreasury} from "./interfaces/ILayerZeroTreasury.sol";
 

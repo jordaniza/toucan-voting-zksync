@@ -2,23 +2,23 @@
 pragma solidity ^0.8.17;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {ILayerZeroEndpointV2, MessagingParams, MessagingReceipt, MessagingFee, Origin} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {ExecutionState} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2ViewUpgradeable.sol";
-import {ILayerZeroReceiver} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroReceiver.sol";
-import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
-import {MessagingContext} from "@layerzerolabs/lz-evm-protocol-v2/contracts/MessagingContext.sol";
-import {Packet} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {OFTMsgCodec} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oft/libs/OFTMsgCodec.sol";
-import {Origin} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OAppReceiver.sol";
-import {Errors} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Errors.sol";
-import {GUID} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/GUID.sol";
-import {ExecutorOptions} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/ExecutorOptions.sol";
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
-import {WorkerOptions} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/SendLibBase.sol";
-import {IExecutorFeeLib} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/interfaces/IExecutorFeeLib.sol";
-import {DVNOptions} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/libs/DVNOptions.sol";
-import {UlnOptions} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/libs/UlnOptions.sol";
-import {CalldataBytesLib} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/CalldataBytesLib.sol";
+import {ILayerZeroEndpointV2, MessagingParams, MessagingReceipt, MessagingFee, Origin} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {ExecutionState} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/EndpointV2ViewUpgradeable.sol";
+import {ILayerZeroReceiver} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroReceiver.sol";
+import {SetConfigParam} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/IMessageLibManager.sol";
+import {MessagingContext} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/MessagingContext.sol";
+import {Packet} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {OFTMsgCodec} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oft/libs/OFTMsgCodec.sol";
+import {Origin} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oapp/OAppReceiver.sol";
+import {Errors} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Errors.sol";
+import {GUID} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/GUID.sol";
+import {ExecutorOptions} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/ExecutorOptions.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
+import {WorkerOptions} from "contracts/layer-zero/LayerZero-v2/messagelib/contracts/SendLibBase.sol";
+import {IExecutorFeeLib} from "contracts/layer-zero/LayerZero-v2/messagelib/contracts/interfaces/IExecutorFeeLib.sol";
+import {DVNOptions} from "contracts/layer-zero/LayerZero-v2/messagelib/contracts/uln/libs/DVNOptions.sol";
+import {UlnOptions} from "contracts/layer-zero/LayerZero-v2/messagelib/contracts/uln/libs/UlnOptions.sol";
+import {CalldataBytesLib} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/CalldataBytesLib.sol";
 
 contract EndpointV2Mock is ILayerZeroEndpointV2, MessagingContext {
     using ExecutorOptions for bytes;
@@ -33,11 +33,11 @@ contract EndpointV2Mock is ILayerZeroEndpointV2, MessagingContext {
     uint32 public immutable eid;
     mapping(address => address) public lzEndpointLookup;
 
-    mapping(address receiver => mapping(uint32 srcEid => mapping(bytes32 sender => uint64 nonce)))
+    mapping(address => mapping(uint32 => mapping(bytes32 => uint64 )))
         public lazyInboundNonce;
-    mapping(address receiver => mapping(uint32 srcEid => mapping(bytes32 sender => mapping(uint64 inboundNonce => bytes32 payloadHash))))
+    mapping(address => mapping(uint32 => mapping(bytes32 => mapping(uint64 => bytes32 ))))
         public inboundPayloadHash;
-    mapping(address sender => mapping(uint32 dstEid => mapping(bytes32 receiver => uint64 nonce)))
+    mapping(address => mapping(uint32 => mapping(bytes32 => uint64 )))
         public outboundNonce;
 
     RelayerFeeConfig public relayerFeeConfig;
@@ -519,7 +519,7 @@ contract EndpointV2Mock is ILayerZeroEndpointV2, MessagingContext {
         bytes calldata _message
     ) external {}
 
-    mapping(address from => mapping(address to => mapping(bytes32 guid => mapping(uint16 index => bytes32 messageHash))))
+    mapping(address => mapping(address => mapping(bytes32 => mapping(uint16 => bytes32 ))))
         public composeQueue;
 
     function defaultReceiveLibrary(
@@ -649,7 +649,7 @@ contract EndpointV2Mock is ILayerZeroEndpointV2, MessagingContext {
         return _quote(_params, _sender);
     }
 
-    mapping(address receiver => mapping(uint32 srcEid => Timeout))
+    mapping(address => mapping(uint32 => Timeout))
         public receiveLibraryTimeout;
 
     function registerLibrary(address /*_lib*/) public {}

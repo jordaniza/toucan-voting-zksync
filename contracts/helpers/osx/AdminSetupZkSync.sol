@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
@@ -9,7 +9,6 @@ import {IDAO} from "@aragon/osx/core/dao/IDAO.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {PermissionLib} from "@aragon/osx/core/permission/PermissionLib.sol";
 import {Admin} from "@aragon/osx/plugins/governance/admin/Admin.sol";
-import {createAProxy} from "./AProxy.sol";
 
 /// @title AdminAddressSetup
 /// @author Aragon Association - 2022-2023
@@ -44,7 +43,7 @@ contract AdminSetupZkSync is PluginSetup {
             revert AdminAddressInvalid({admin: admin});
         }
 
-        plugin = createAProxy(
+        plugin = createERC1967Proxy(
             address(implementation_),
             abi.encodeWithSelector(Admin.initialize.selector, _dao)
         );

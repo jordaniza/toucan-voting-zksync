@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.17;
 
-import {Packet} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
+import {Packet} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {SetConfigParam} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/IMessageLibManager.sol";
 
 import {ExecutorConfig} from "../../SendLibBase.sol";
 import {SendLibBaseE2, WorkerOptions} from "../../SendLibBaseE2.sol";

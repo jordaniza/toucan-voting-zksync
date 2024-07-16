@@ -20,30 +20,6 @@ import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/Pl
 
 import {MockPluginSetupProcessor as PluginSetupProcessor} from "./MockPSP.sol";
 
-contract AProxy is Proxy, ERC1967Upgrade {
-    /**
-     * @dev Initializes the upgradeable proxy with an initial implementation specified by `_logic`.
-     *
-     * If `_data` is nonempty, it's used as data in a delegate call to `_logic`. This will typically be an encoded
-     * function call, and allows initializing the storage of the proxy like a Solidity constructor.
-     */
-    constructor(address _logic, bytes memory _data) payable {
-        _upgradeToAndCall(_logic, _data, false);
-    }
-
-    /**
-     * @dev Returns the current implementation address.
-     */
-    function _implementation()
-        internal
-        view
-        virtual
-        override
-        returns (address impl)
-    {
-        return ERC1967Upgrade._getImplementation();
-    }
-}
 
 // import {DAORegistry} from "./DAORegistry.sol";
 
@@ -193,52 +169,31 @@ contract MockDAOFactory {
         createdDao.revoke(address(createdDao), address(this), rootPermissionID);
     }
 
-    // /// @notice Deploys a new DAO `ERC1967` proxy, and initialize it with this contract as the intial owner.
-    // /// @param _daoSettings The trusted forwarder, name and metadata hash of the DAO it creates.
-    // function _createDAO(
-    //     DAOSettings calldata _daoSettings
-    // ) internal returns (DAO dao) {
-    //     // Create a DAO proxy and initialize it with the DAOFactory (`address(this)`) as the initial owner.
-    //     // As a result, the DAOFactory has `ROOT_PERMISSION_`ID` permission on the DAO.
-    //     dao = DAO(
-    //         payable(
-    //             daoBase.deployUUPSProxy(
-    //                 abi.encodeCall(
-    //                     DAO.initialize,
-    //                     (
-    //                         _daoSettings.metadata,
-    //                         address(this),
-    //                         _daoSettings.trustedForwarder,
-    //                         _daoSettings.daoURI
-    //                     )
-    //                 )
-    //             )
-    //         )
-    //     );
-    // }
-
-    function createERC1967Proxy(
-        address _logic,
-        bytes memory _data
-    ) public returns (address) {
-        return address(new AProxy(_logic, _data));
-    }
-
     /// @notice Deploys a new DAO `ERC1967` proxy, and initialize it with this contract as the intial owner.
     /// @param _daoSettings The trusted forwarder, name and metadata hash of the DAO it creates.
     function _createDAO(
         DAOSettings calldata _daoSettings
     ) internal returns (DAO dao) {
-        // create dao
-        dao = DAO(payable(createERC1967Proxy(daoBase, bytes(""))));
-        // initialize the DAO and give the `ROOT_PERMISSION_ID` permission to this contract.
-        dao.initialize(
-            _daoSettings.metadata,
-            address(this),
-            _daoSettings.trustedForwarder,
-            _daoSettings.daoURI
+        // Create a DAO proxy and initialize it with the DAOFactory (`address(this)`) as the initial owner.
+        // As a result, the DAOFactory has `ROOT_PERMISSION_`ID` permission on the DAO.
+        dao = DAO(
+            payable(
+                daoBase.deployUUPSProxy(
+                    abi.encodeCall(
+                        DAO.initialize,
+                        (
+                            _daoSettings.metadata,
+                            address(this),
+                            _daoSettings.trustedForwarder,
+                            _daoSettings.daoURI
+                        )
+                    )
+                )
+            )
         );
     }
+
+
 
     /// @notice Sets the required permissions for the new DAO.
     /// @param _dao The DAO instance just created.

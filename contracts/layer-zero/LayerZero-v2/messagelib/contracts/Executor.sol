@@ -5,8 +5,8 @@ pragma solidity ^0.8.17;
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {Proxied} from "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
-import {ILayerZeroEndpointV2, Origin} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
+import {ILayerZeroEndpointV2, Origin} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
 
 import {IUltraLightNode301} from "./uln/uln301/interfaces/IUltraLightNode301.sol";
 import {IExecutor} from "./interfaces/IExecutor.sol";

@@ -3,7 +3,7 @@
 pragma solidity ^0.8.17;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
 
 import {IUltraLightNode301} from "./interfaces/IUltraLightNode301.sol";
 import {ReceiveLibBaseE1} from "./ReceiveLibBaseE1.sol";

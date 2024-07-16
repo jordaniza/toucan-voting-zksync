@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.17;
 
-import {Packet} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
+import {Packet} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
 
 import {ILayerZeroDVN} from "./interfaces/ILayerZeroDVN.sol";
 import {DVNOptions} from "./libs/DVNOptions.sol";

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {OFT} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oft/OFT.sol";
-import {SendParam} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oft/OFTCore.sol";
+import {OFT} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oft/OFT.sol";
+import {SendParam} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oft/OFTCore.sol";
 
 contract OFTMock is OFT {
     constructor(
@@ -24,7 +24,7 @@ contract OFTMock is OFT {
         uint32 _dstEid
     ) public returns (uint256 amountDebitedLD, uint256 amountToCreditLD) {
         return
-            _debit(msg.sender, _amountToSendLD, _minAmountToCreditLD, _dstEid);
+            _debit( _amountToSendLD, _minAmountToCreditLD, _dstEid);
     }
 
     function debitView(

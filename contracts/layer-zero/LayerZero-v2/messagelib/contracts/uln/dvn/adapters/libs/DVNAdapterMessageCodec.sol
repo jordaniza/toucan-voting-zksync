@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-import {AddressCast} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/AddressCast.sol";
+import {AddressCast} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/AddressCast.sol";
 
 library DVNAdapterMessageCodec {
     using AddressCast for bytes32;

@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import { Origin } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import { Origin } from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import { IWorker } from "./IWorker.sol";
 import { ILayerZeroExecutor } from "./ILayerZeroExecutor.sol";

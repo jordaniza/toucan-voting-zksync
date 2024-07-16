@@ -7,9 +7,9 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {Proxied} from "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
 import {ILayerZeroEndpoint} from "@layerzerolabs/lz-evm-v1-0.7/contracts/interfaces/ILayerZeroEndpoint.sol";
-import {AddressCast} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/AddressCast.sol";
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
-import {ExecutionState, EndpointV2View} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2View.sol";
+import {AddressCast} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/AddressCast.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
+import {ExecutionState, EndpointV2View} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/EndpointV2View.sol";
 
 import {UlnConfig} from "../UlnBase.sol";
 

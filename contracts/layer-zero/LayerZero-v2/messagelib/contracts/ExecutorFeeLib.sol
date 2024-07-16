@@ -4,8 +4,8 @@ pragma solidity ^0.8.17;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
-import {ExecutorOptions} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/ExecutorOptions.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
+import {ExecutorOptions} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/ExecutorOptions.sol";
 
 import {ILayerZeroPriceFeed} from "./interfaces/ILayerZeroPriceFeed.sol";
 import {IExecutor} from "./interfaces/IExecutor.sol";

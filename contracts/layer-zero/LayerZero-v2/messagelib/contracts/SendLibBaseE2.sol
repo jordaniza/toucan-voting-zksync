@@ -5,10 +5,10 @@ pragma solidity ^0.8.17;
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-import {ILayerZeroEndpointV2, MessagingFee} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {IMessageLib, MessageLibType} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLib.sol";
-import {ISendLib, Packet} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {ILayerZeroEndpointV2, MessagingFee} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {IMessageLib, MessageLibType} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/IMessageLib.sol";
+import {ISendLib, Packet} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
 import {SendLibBase, WorkerOptions, ExecutorConfig} from "./SendLibBase.sol";
 

@@ -6,10 +6,10 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {Proxied} from "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
 import {IReceiveUlnE2} from "./interfaces/IReceiveUlnE2.sol";
-import {ILayerZeroEndpointV2, Origin} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {ILayerZeroEndpointV2, Origin} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
-import {ExecutionState, EndpointV2ViewUpgradeable} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2ViewUpgradeable.sol";
+import {ExecutionState, EndpointV2ViewUpgradeable} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/EndpointV2ViewUpgradeable.sol";
 
 import {VerificationState} from "./uln302/ReceiveUln302View.sol";
 

@@ -8,7 +8,7 @@ import {IToucanRelayMessage} from "contracts/interfaces/IToucanRelayMessage.sol"
 
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {MessagingFee, MessagingReceipt} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {MessagingFee, MessagingReceipt} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {OptionsBuilder} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oapp/libs/OptionsBuilder.sol";
 import {Origin} from "contracts/layer-zero/LayerZero-v2/oapp/contracts/oapp/interfaces/IOAppReceiver.sol";
 import {PluginUUPSUpgradeable} from "@aragon/osx/core/plugin/PluginUUPSUpgradeable.sol";

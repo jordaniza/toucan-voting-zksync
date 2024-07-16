@@ -6,8 +6,8 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import {ISendLib} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {ISendLib} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
 import {IWorker} from "../interfaces/IWorker.sol";
 

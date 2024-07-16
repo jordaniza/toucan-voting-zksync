@@ -3,7 +3,7 @@
 pragma solidity ^0.8.17;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
 import {ILayerZeroPriceFeed} from "../../interfaces/ILayerZeroPriceFeed.sol";
 import {IDVN} from "../interfaces/IDVN.sol";

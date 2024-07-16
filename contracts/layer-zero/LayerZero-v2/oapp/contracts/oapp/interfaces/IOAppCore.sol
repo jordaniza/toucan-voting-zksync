@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-import {ILayerZeroEndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {ILayerZeroEndpointV2} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 /**
  * @title IOAppCore

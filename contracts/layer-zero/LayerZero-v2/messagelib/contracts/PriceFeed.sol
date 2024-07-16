@@ -5,8 +5,8 @@ pragma solidity ^0.8.17;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Proxied} from "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
-import {ILayerZeroEndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {ILayerZeroEndpointV2} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
 import {ILayerZeroPriceFeed} from "./interfaces/ILayerZeroPriceFeed.sol";
 

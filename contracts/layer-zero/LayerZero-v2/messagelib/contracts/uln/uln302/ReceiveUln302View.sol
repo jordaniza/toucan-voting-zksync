@@ -3,9 +3,9 @@
 pragma solidity ^0.8.17;
 
 import {Proxied} from "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
-import {Origin} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import {EndpointV2ViewUpgradeable} from "@layerzerolabs/lz-evm-protocol-v2/contracts/EndpointV2ViewUpgradeable.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
+import {Origin} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {EndpointV2ViewUpgradeable} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/EndpointV2ViewUpgradeable.sol";
 import {UlnConfig} from "../UlnBase.sol";
 
 enum VerificationState {

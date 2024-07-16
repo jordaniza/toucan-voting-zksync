@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.17;
 
-import {Packet} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ISendLib.sol";
-import {AddressCast} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/AddressCast.sol";
-import {GUID} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/GUID.sol";
-import {Transfer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/Transfer.sol";
+import {Packet} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ISendLib.sol";
+import {AddressCast} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/AddressCast.sol";
+import {GUID} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/GUID.sol";
+import {Transfer} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/Transfer.sol";
 
 import {IMessageLibE1} from "./interfaces/IMessageLibE1.sol";
 import {ITreasuryFeeHandler} from "./interfaces/ITreasuryFeeHandler.sol";

@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.17;
 
-import {PacketV1Codec} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/PacketV1Codec.sol";
-import {SetConfigParam} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
-import {ILayerZeroEndpointV2, Origin} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {PacketV1Codec} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/PacketV1Codec.sol";
+import {SetConfigParam} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/IMessageLibManager.sol";
+import {ILayerZeroEndpointV2, Origin} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 import {IReceiveUlnE2} from "../interfaces/IReceiveUlnE2.sol";
 import {ReceiveUlnBase} from "../ReceiveUlnBase.sol";

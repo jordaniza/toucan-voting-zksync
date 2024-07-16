@@ -4,8 +4,8 @@ pragma solidity ^0.8.17;
 
 import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
 
-import {BitMap256} from "@layerzerolabs/lz-evm-protocol-v2/contracts/messagelib/libs/BitMaps.sol";
-import {CalldataBytesLib} from "@layerzerolabs/lz-evm-protocol-v2/contracts/libs/CalldataBytesLib.sol";
+import {BitMap256} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/messagelib/libs/BitMaps.sol";
+import {CalldataBytesLib} from "contracts/layer-zero/LayerZero-v2/protocol/contracts/libs/CalldataBytesLib.sol";
 
 library DVNOptions {
     using CalldataBytesLib for bytes;
