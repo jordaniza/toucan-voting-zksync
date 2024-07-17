@@ -118,12 +118,16 @@ export const deployContract = async (
 
   if (!options?.noVerify && hre.network.config.verifyURL) {
     log(`Requesting contract verification...`);
-    await verifyContract({
-      address: contract.address,
-      contract: fullContractSource,
-      constructorArguments: constructorArgs,
-      bytecode: artifact.bytecode,
-    });
+    try {
+      await verifyContract({
+        address: contract.address,
+        contract: fullContractSource,
+        constructorArguments: constructorArgs,
+        bytecode: artifact.bytecode,
+      });
+    } catch (error) {
+      console.warn(`⚠️ Contract verification failed: ${error.message}`);
+    }
   }
 
   return contract;

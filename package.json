@@ -7,11 +7,15 @@
   "repository": "https://github.com/matter-labs/zksync-hardhat-template.git",
   "scripts": {
     "deploy": "hardhat deploy-zksync --script deploy.ts",
+    "deploy:fr": "hardhat deploy-zksync --script deploy.ts --network zkSyncMainnet",
+    "deploy:help": "hardhat deploy-zksync --help",
+    "deploy:check": "hardhat deploy-zksync --script check.ts --network zkSyncMainnet",
     "interact": "hardhat deploy-zksync --script interact.ts",
     "compile": "hardhat compile",
     "build": "hardhat compile",
     "clean": "hardhat clean",
-    "test": "hardhat test --network hardhat"
+    "test": "hardhat test --network hardhat",
+    "test:fork": "hardhat test --network inMemoryNode"
   },
   "devDependencies": {
     "@layerzerolabs/lz-evm-messagelib-v2": "^2.3.25",

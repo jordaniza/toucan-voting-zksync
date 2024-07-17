@@ -11,6 +11,7 @@ import {
 import {
   ChainBase,
   ExecutionChain,
+  IChainBase,
   InstallationParamsStruct,
   VOTING_VOTER,
   VotingChain,
@@ -20,8 +21,16 @@ import {
 } from "./base";
 import { votingActions } from "./actions";
 
-export async function setupVotingChain(): Promise<VotingChain> {
-  const base = new ChainBase("ZkSync", 80085, getWallet(LOCAL_RICH_WALLETS[0].privateKey), 2, VOTING_VOTER.address);
+export const DEFAULT_VOTING_CHAIN_BASE: IChainBase = {
+  eid: 2,
+  voter: VOTING_VOTER.address,
+  chainName: "ZkSync",
+  chainid: 80085,
+  deployer: getWallet(LOCAL_RICH_WALLETS[0].privateKey),
+};
+
+export async function setupVotingChain(config: IChainBase): Promise<VotingChain> {
+  const base = new ChainBase(config);
 
   const v = new VotingChain(base);
 
@@ -39,13 +48,15 @@ export async function prepareSetupRelay(chain: VotingChain, e: ExecutionChain): 
     [chain.base.dao.address, "TestToken", "TT"],
     { wallet: chain.base.deployer }
   );
-  chain.relaySetup = (await deployContract(
+  const relaySetup = await deployContract(
     "ToucanRelaySetup",
     [relayBase.address, bridgeBase.address, erc20VotingChainBase.address],
     { wallet: chain.base.deployer }
-  )) as ToucanRelaySetup;
+  );
+  chain.relaySetup = relaySetup as ToucanRelaySetup;
 
-  await chain.base.psp.queueSetup(chain.relaySetup.address);
+  const txQueue = await chain.base.psp.queueSetup(chain.relaySetup.address);
+  await txQueue.wait();
 
   const params: InstallationParamsStruct = {
     lzEndpoint: chain.base.lzEndpoint,
@@ -66,6 +77,7 @@ export async function prepareSetupRelay(chain: VotingChain, e: ExecutionChain): 
   );
 
   const tx = await chain.base.psp.prepareInstallation(chain.base.dao.address, mockPrepareInstallationParams(data));
+  await tx.wait();
 
   chain.toucanRelayPermissions = toucanRelaySetupData.permissions;
 
@@ -78,11 +90,14 @@ export async function prepareSetupRelay(chain: VotingChain, e: ExecutionChain): 
 export async function prepareSetupAdminXChain(chain: VotingChain): Promise<void> {
   const adminXChainBase = await deployContract("AdminXChain", [], { wallet: chain.base.deployer });
 
-  chain.adminXChainSetup = (await deployContract("AdminXChainSetup", [adminXChainBase.address], {
+  const adminXChainSetupDeployed = await deployContract("AdminXChainSetup", [adminXChainBase.address], {
     wallet: chain.base.deployer,
-  })) as AdminXChainSetup;
+  });
 
-  await chain.base.psp.queueSetup(chain.adminXChainSetup.address);
+  chain.adminXChainSetup = adminXChainSetupDeployed as AdminXChainSetup;
+
+  const txQueue = await chain.base.psp.queueSetup(chain.adminXChainSetup.address);
+  await txQueue.wait();
 
   const data = ethers.utils.defaultAbiCoder.encode(["address"], [chain.base.lzEndpoint]);
 
@@ -92,6 +107,7 @@ export async function prepareSetupAdminXChain(chain: VotingChain): Promise<void>
   );
 
   const tx = await chain.base.psp.prepareInstallation(chain.base.dao.address, mockPrepareInstallationParams(data));
+  await tx.wait();
 
   chain.adminXChainPermissions = adminXChainSetupData.permissions;
   chain.adminXChain = AdminXChain__factory.connect(adminXChainAddress, chain.base.deployer);
@@ -102,7 +118,6 @@ export async function applyInstallationsSetPeersRevokeAdmin(
   executionChain: ExecutionChain
 ): Promise<void> {
   const actions = await votingActions(chain, executionChain);
-
   const tx = await chain.base.admin.executeProposal("0x", actions, 0);
   await tx.wait();
 }

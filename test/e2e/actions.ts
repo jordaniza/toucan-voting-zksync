@@ -69,7 +69,7 @@ export async function executionActions(chain: ExecutionChain, votingChain: Votin
 }
 
 export async function votingActions(chain: VotingChain, executionChain: ExecutionChain): Promise<IDAO.ActionStruct[]> {
-  const actions: IDAO.ActionStruct[] = new Array(6);
+  const actions: IDAO.ActionStruct[] = [];
 
   // action 0: apply the toucanRelay installation
   actions[0] = {
@@ -152,7 +152,7 @@ async function wrapGrantRevokeRoot(dao: DAO, psp: string, actions: IDAO.ActionSt
   }
 
   // Action to revoke ROOT permission
-  wrappedActions[len + 1] = {
+  wrappedActions[wrappedActions.length - 1] = {
     to: dao.address,
     value: 0,
     data: dao.interface.encodeFunctionData("revoke", [dao.address, psp, ROOT_PERMISSION_ID]),

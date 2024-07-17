@@ -16,6 +16,7 @@ import {
   ChainBase,
   EXECUTION_VOTER,
   ExecutionChain,
+  IChainBase,
   TokenSettingsStruct,
   VotingChain,
   VotingMode,
@@ -27,14 +28,16 @@ import {
 import { PermissionLib } from "../../typechain/contracts/execution-chain/voting/ToucanVotingSetup";
 import { executionActions } from "./actions";
 
-export async function setupExecutionChain(): Promise<ExecutionChain> {
-  const base = new ChainBase(
-    "Ethereum",
-    80085,
-    getWallet(LOCAL_RICH_WALLETS[0].privateKey),
-    1,
-    EXECUTION_VOTER.address
-  );
+export const DEFAULT_EXECUTION_CHAIN_SETUP: IChainBase = {
+  eid: 1,
+  voter: EXECUTION_VOTER.address,
+  chainName: "Ethereum",
+  chainid: 80085,
+  deployer: getWallet(LOCAL_RICH_WALLETS[0].privateKey),
+};
+
+export async function setupExecutionChain(config: IChainBase): Promise<ExecutionChain> {
+  const base = new ChainBase(config);
 
   const e = new ExecutionChain(base);
 
@@ -147,26 +150,6 @@ export async function prepareSetupReceiver(chain: ExecutionChain): Promise<void>
   const helpers = receiverPluginPreparedSetupData.helpers;
   chain.adapter = GovernanceOFTAdapter__factory.connect(helpers[0], chain.base.deployer);
   chain.actionRelay = ActionRelay__factory.connect(helpers[1], chain.base.deployer);
-}
-
-export async function prepareUninstallAdmin(base: ChainBase): Promise<void> {
-  await base.psp.queueSetup(base.adminSetup.address);
-
-  const payload: IPluginSetup.SetupPayloadStruct = {
-    plugin: base.admin.address,
-    currentHelpers: [],
-    data: "0x",
-  };
-
-  const permissions: PermissionLib.MultiTargetPermissionStruct[] = await base.psp.callStatic.prepareUninstallation(
-    base.dao.address,
-    mockPrepareUninstallationParams(payload)
-  );
-
-  const tx = await base.psp.prepareUninstallation(base.dao.address, mockPrepareUninstallationParams(payload));
-  await tx.wait();
-
-  base.adminUninstallPermissions = permissions;
 }
 
 export async function applyInstallationsSetPeersRevokeAdmin(

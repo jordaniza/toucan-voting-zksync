@@ -98,14 +98,26 @@ export interface ExecutionChain {
   votingPermissions: MultiTargetPermission[];
 }
 
+export interface IChainBase {
+  chainName: string;
+  chainid: number;
+  deployer: Wallet;
+  eid: number;
+  voter: Address;
+  layerZeroEndpoint?: Address;
+}
+
 export class ChainBase {
-  constructor(chainName: string, chainid: number, deployer: Wallet, eid: number, voter: Address) {
+  constructor({ chainName, chainid, deployer, eid, voter, layerZeroEndpoint }: IChainBase) {
     this.chainName = chainName;
     this.eid = eid;
     this.chainid = chainid;
     this.lzEndpoint = ethers.constants.AddressZero;
     this.deployer = deployer;
     this.voter = voter;
+    if (layerZeroEndpoint) {
+      this.lzEndpoint = layerZeroEndpoint;
+    }
   }
 }
 
@@ -286,6 +298,7 @@ export async function deployDAOAndAdmin(base: ChainBase): Promise<void> {
   // use the OSx DAO factory with the Admin Plugin
   const data = ethers.utils.defaultAbiCoder.encode(["address"], [base.deployer.address]);
   const createDaoTx = await base.daoFactory.createDao(mockDAOSettings, mockPluginSettings(data));
+  await createDaoTx.wait();
   // console.warn("Might need to await for the transaction to be mined", receipt.transactionHash);
   const info = await extractInfoFromCreateDaoTx(createDaoTx);
 
@@ -322,4 +335,24 @@ export async function wireLayerZero(e: ExecutionChain, v: VotingChain): Promise<
     await endpointExecutionChain.setDestLzEndpoint(vot.address, endpointVotingChain.address);
     await endpointVotingChain.setDestLzEndpoint(exec.address, endpointExecutionChain.address);
   }
+}
+
+export async function prepareUninstallAdmin(base: ChainBase): Promise<void> {
+  await base.psp.queueSetup(base.adminSetup.address);
+
+  const payload: IPluginSetup.SetupPayloadStruct = {
+    plugin: base.admin.address,
+    currentHelpers: [],
+    data: "0x",
+  };
+
+  const permissions: PermissionLib.MultiTargetPermissionStruct[] = await base.psp.callStatic.prepareUninstallation(
+    base.dao.address,
+    mockPrepareUninstallationParams(payload)
+  );
+
+  const tx = await base.psp.prepareUninstallation(base.dao.address, mockPrepareUninstallationParams(payload));
+  await tx.wait();
+
+  base.adminUninstallPermissions = permissions;
 }

@@ -294,10 +294,14 @@ contract MockPluginSetupProcessor {
         // repoRegistry = _repoRegistry;
     }
 
-    address[] setups;
+    address[] public setups;
 
     function queueSetup(address _setup) public {
         setups.push(_setup);
+    }
+
+    function flushQueue() public {
+        setups = new address[](0);
     }
 
     function popSetup() internal returns (address) {
@@ -412,12 +416,12 @@ contract MockPluginSetupProcessor {
             DAO(payable(_dao)).applyMultiTargetPermissions(_params.permissions);
         }
 
-        // emit InstallationApplied({
-        //     dao: _dao,
-        //     plugin: _params.plugin,
-        //     preparedSetupId: preparedSetupId,
-        //     appliedSetupId: appliedSetupId
-        // });
+        emit InstallationApplied({
+            dao: _dao,
+            plugin: _params.plugin,
+            preparedSetupId: bytes32(0),
+            appliedSetupId: bytes32(0)
+        });
     }
 
     /// @notice Prepares the update of an UUPS upgradeable plugin.

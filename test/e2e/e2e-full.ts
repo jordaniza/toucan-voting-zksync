@@ -5,14 +5,14 @@ import {
   VOTING_VOTER,
   VotingChain,
   _deployLayerZero,
-  mockApplyUninstallationParams,
+  prepareUninstallAdmin,
   wireLayerZero,
 } from "./base";
 import {
+  DEFAULT_EXECUTION_CHAIN_SETUP as DEFAULT_EXECUTION_CHAIN_BASE,
   applyInstallationsSetPeersRevokeAdmin as applyInstallationsSetPeersRevokeAdminExecutionChain,
   prepareSetupReceiver,
   prepareSetupToucanVoting,
-  prepareUninstallAdmin,
   setupExecutionChain,
 } from "./execution-chain";
 import {
@@ -20,6 +20,7 @@ import {
   prepareSetupRelay,
   setupVotingChain,
   applyInstallationsSetPeersRevokeAdmin as applyInstallationsSetPeersRevokeAdminVotingChain,
+  DEFAULT_VOTING_CHAIN_BASE,
 } from "./voting-chain";
 import { Options, hexZeroPadTo32 } from "@layerzerolabs/lz-v2-utilities";
 import { addressToBytes32 } from "@layerzerolabs/lz-v2-utilities";
@@ -39,10 +40,8 @@ const transferAmount = ethers.utils.parseEther("100000"); // Replace with actual
 
 describe("Toucan Voting ZkSync Test", function () {
   it("should deploy the DAO and Admin", async function () {
-    const provider = getTestProvider();
-
-    const e = await setupExecutionChain();
-    const v = await setupVotingChain();
+    const e = await setupExecutionChain(DEFAULT_EXECUTION_CHAIN_BASE);
+    const v = await setupVotingChain(DEFAULT_VOTING_CHAIN_BASE);
     await _deployLayerZero(e.base, v.base);
 
     // execution chain
@@ -154,14 +153,9 @@ async function bridgeTokens(e: ExecutionChain, v: VotingChain): Promise<void> {
 }
 
 async function createProposal(e: ExecutionChain, v: VotingChain): Promise<ethers.BigNumber> {
-  const blockNumber = 100;
   const blockTimestamp = 100;
 
   const provider = getTestProvider();
-  // https://github.com/matter-labs/era-test-node/blob/main/e2e-tests/test/evm-apis.test.ts
-  // for (let i = 0; i < blockNumber; i++) {
-  //   await provider.send("evm_mine", []);
-  // }
 
   // had a lot of funny issues here but the below appears to work
   await provider.send("evm_setTime", [blockTimestamp]);
