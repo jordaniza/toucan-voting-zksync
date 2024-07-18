@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { LOCAL_RICH_WALLETS, deployContract, getWallet } from "../../deploy/utils";
+import { LOCAL_RICH_WALLETS, deployContract, getProvider, getWallet } from "../../deploy/utils";
 import {
   ActionRelay__factory,
   GovernanceERC20,
@@ -20,12 +20,10 @@ import {
   TokenSettingsStruct,
   VotingChain,
   VotingMode,
-  deployDAOAndAdmin,
+  deployDAOAndMultisig,
   deployOSX,
   mockPrepareInstallationParams,
-  mockPrepareUninstallationParams,
 } from "./base";
-import { PermissionLib } from "../../typechain/contracts/execution-chain/voting/ToucanVotingSetup";
 import { executionActions } from "./actions";
 
 export const DEFAULT_EXECUTION_CHAIN_SETUP: IChainBase = {
@@ -42,7 +40,7 @@ export async function setupExecutionChain(config: IChainBase): Promise<Execution
   const e = new ExecutionChain(base);
 
   await deployOSX(e.base);
-  await deployDAOAndAdmin(e.base);
+  await deployDAOAndMultisig(e.base);
 
   return e;
 }
@@ -152,12 +150,9 @@ export async function prepareSetupReceiver(chain: ExecutionChain): Promise<void>
   chain.actionRelay = ActionRelay__factory.connect(helpers[1], chain.base.deployer);
 }
 
-export async function applyInstallationsSetPeersRevokeAdmin(
-  chain: ExecutionChain,
-  votingChain: VotingChain
-): Promise<void> {
+export async function applyInstallationsSetPeers(chain: ExecutionChain, votingChain: VotingChain): Promise<void> {
   const actions = await executionActions(chain, votingChain);
-
-  const tx = await chain.base.admin.executeProposal("0x", actions, 0);
+  const block = await getProvider().getBlock("latest");
+  const tx = await chain.base.multisig.createProposal("0x", actions, 0, true, true, 0, block.timestamp + 15 * 60);
   await tx.wait();
 }

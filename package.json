@@ -6,8 +6,9 @@
   "license": "MIT",
   "repository": "https://github.com/matter-labs/zksync-hardhat-template.git",
   "scripts": {
-    "deploy": "hardhat deploy-zksync --script deploy.ts",
-    "deploy:fr": "hardhat deploy-zksync --script deploy.ts --network zkSyncMainnet",
+    "deploy:testnet": "hardhat deploy-zksync --script deploy.ts --network zkSyncSepoliaTestnet",
+    "deploy:mainnet": "hardhat deploy-zksync --script deploy.ts --network zkSyncMainnet",
+    "deploy:fork": "hardhat deploy-zksync --script deploy.ts --network inMemoryNode",
     "deploy:help": "hardhat deploy-zksync --help",
     "deploy:check": "hardhat deploy-zksync --script check.ts --network zkSyncMainnet",
     "interact": "hardhat deploy-zksync --script interact.ts",
@@ -15,7 +16,12 @@
     "build": "hardhat compile",
     "clean": "hardhat clean",
     "test": "hardhat test --network hardhat",
-    "test:fork": "hardhat test --network inMemoryNode"
+    "test:fork": "hardhat test --network inMemoryNode",
+    "script:oappConfig-fork": "hardhat deploy-zksync --script oappConfig.ts --network inMemoryNode",
+    "script:oappConfig-mainnet": "hardhat deploy-zksync --script oappConfig.ts --network zkSyncMainnet",
+    "deploy:paymaster-sepolia": "hardhat deploy-zksync --script test-paymaster.ts --network zkSyncSepoliaTestnet",
+    "deploy:paymaster-fork": "hardhat deploy-zksync --script test-paymaster.ts --network inMemoryNode",
+    "deploy:paymaster-mainnet": "hardhat deploy-zksync --script test-paymaster.ts --network zkSyncMainnet"
   },
   "devDependencies": {
     "@layerzerolabs/lz-evm-messagelib-v2": "^2.3.25",

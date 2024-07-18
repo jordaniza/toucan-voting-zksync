@@ -40,6 +40,11 @@ import {
   EndpointV2LocalMock,
   EndpointV2LocalMock__factory,
 } from "../../typechain";
+import { Multisig, MultisigSetup } from "../../typechain/@aragon/osx/plugins/governance/multisig";
+import {
+  Multisig__factory,
+  MultisigSetup__factory,
+} from "../../typechain/factories/@aragon/osx/plugins/governance/multisig";
 import { Address } from "zksync-ethers/build/types";
 import { PermissionLib } from "../../typechain/@aragon/osx/core/dao/DAO";
 import { DAORegisteredEvent, PluginSetupRefStruct } from "../../typechain/contracts/helpers/osx/MockDAOFactory";
@@ -67,8 +72,8 @@ export interface ChainBase {
   psp: MockPluginSetupProcessor;
   daoFactory: MockDAOFactory;
   deployer: Wallet;
-  adminSetup: AdminSetup;
-  admin: Admin;
+  multisigSetup: MultisigSetup;
+  multisig: Multisig;
   adminUninstallPermissions: MultiTargetPermission[];
   voter: Address;
 }
@@ -255,11 +260,11 @@ export const EVENTS = {
 
 /// deploy the mock PSP and DAOFactory with the admin plugin
 export async function deployOSX(base: ChainBase): Promise<void> {
-  const adminZk = await deployContract("AdminSetupZkSync", [], { wallet: base.deployer });
-  const pspZk = await deployContract("MockPluginSetupProcessor", [adminZk.address], { wallet: base.deployer });
+  const multisigSetup = await deployContract("MultisigSetup", [], { wallet: base.deployer });
+  const pspZk = await deployContract("MockPluginSetupProcessor", [multisigSetup.address], { wallet: base.deployer });
   const daoFactoryZk = await deployContract("MockDAOFactory", [pspZk.address], { wallet: base.deployer });
 
-  base.adminSetup = adminZk as AdminSetup;
+  base.multisigSetup = multisigSetup as MultisigSetup;
   base.psp = pspZk as MockPluginSetupProcessor;
   base.daoFactory = daoFactoryZk as MockDAOFactory;
 }
@@ -294,16 +299,20 @@ export async function extractInfoFromCreateDaoTx(tx: ethers.ContractTransaction)
   };
 }
 
-export async function deployDAOAndAdmin(base: ChainBase): Promise<void> {
-  // use the OSx DAO factory with the Admin Plugin
-  const data = ethers.utils.defaultAbiCoder.encode(["address"], [base.deployer.address]);
+export async function deployDAOAndMultisig(base: ChainBase): Promise<void> {
+  // use the OSx DAO factory with the multisig  Plugin
+  const data = ethers.utils.defaultAbiCoder.encode(
+    ["address[]", "tuple(bool onlyListed, uint256 minApprovals)"],
+    [[base.deployer.address], [true, 1]]
+  );
+
   const createDaoTx = await base.daoFactory.createDao(mockDAOSettings, mockPluginSettings(data));
   await createDaoTx.wait();
   // console.warn("Might need to await for the transaction to be mined", receipt.transactionHash);
   const info = await extractInfoFromCreateDaoTx(createDaoTx);
 
   base.dao = DAO__factory.connect(info.dao, base.deployer);
-  base.admin = Admin__factory.connect(info.plugin, base.deployer);
+  base.multisig = Multisig__factory.connect(info.plugin, base.deployer);
 }
 
 export async function _deployLayerZero(executionChain: ChainBase, votingChain: ChainBase): Promise<void> {
@@ -335,24 +344,4 @@ export async function wireLayerZero(e: ExecutionChain, v: VotingChain): Promise<
     await endpointExecutionChain.setDestLzEndpoint(vot.address, endpointVotingChain.address);
     await endpointVotingChain.setDestLzEndpoint(exec.address, endpointExecutionChain.address);
   }
-}
-
-export async function prepareUninstallAdmin(base: ChainBase): Promise<void> {
-  await base.psp.queueSetup(base.adminSetup.address);
-
-  const payload: IPluginSetup.SetupPayloadStruct = {
-    plugin: base.admin.address,
-    currentHelpers: [],
-    data: "0x",
-  };
-
-  const permissions: PermissionLib.MultiTargetPermissionStruct[] = await base.psp.callStatic.prepareUninstallation(
-    base.dao.address,
-    mockPrepareUninstallationParams(payload)
-  );
-
-  const tx = await base.psp.prepareUninstallation(base.dao.address, mockPrepareUninstallationParams(payload));
-  await tx.wait();
-
-  base.adminUninstallPermissions = permissions;
 }

@@ -2812,6 +2812,52 @@
       "factoryDeps": [],
       "address": "0x65C899B5fb8Eb9ae4da51D67E1fc417c7CB7e964",
       "txHash": "0xed71084b3c55d4d3041bf077e97bc8bce64010504af0940d8f2ce7f1f443cc72"
+    },
+    {
+      "constructorArgs": [
+        "0x7114B9D638671aAF5252aD092596AdeE49804575",
+        "Test Token",
+        "TT",
+        {
+          "receivers": [
+            "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049"
+          ],
+          "amounts": [
+            {
+              "type": "BigNumber",
+              "hex": "0x00"
+            }
+          ]
+        }
+      ],
+      "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "deploymentType": "create",
+      "factoryDeps": [],
+      "address": "0x65C899B5fb8Eb9ae4da51D67E1fc417c7CB7e964",
+      "txHash": "0xed71084b3c55d4d3041bf077e97bc8bce64010504af0940d8f2ce7f1f443cc72"
+    },
+    {
+      "constructorArgs": [
+        "0x7114B9D638671aAF5252aD092596AdeE49804575",
+        "Test Token",
+        "TT",
+        {
+          "receivers": [
+            "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049"
+          ],
+          "amounts": [
+            {
+              "type": "BigNumber",
+              "hex": "0x00"
+            }
+          ]
+        }
+      ],
+      "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "deploymentType": "create",
+      "factoryDeps": [],
+      "address": "0x65C899B5fb8Eb9ae4da51D67E1fc417c7CB7e964",
+      "txHash": "0xed71084b3c55d4d3041bf077e97bc8bce64010504af0940d8f2ce7f1f443cc72"
     }
   ]
 }

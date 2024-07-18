@@ -1,16 +1,8 @@
 import { BigNumber, ethers } from "ethers";
-import {
-  EXECUTION_VOTER,
-  ExecutionChain,
-  VOTING_VOTER,
-  VotingChain,
-  _deployLayerZero,
-  prepareUninstallAdmin,
-  wireLayerZero,
-} from "./base";
+import { EXECUTION_VOTER, ExecutionChain, VOTING_VOTER, VotingChain, _deployLayerZero, wireLayerZero } from "./base";
 import {
   DEFAULT_EXECUTION_CHAIN_SETUP as DEFAULT_EXECUTION_CHAIN_BASE,
-  applyInstallationsSetPeersRevokeAdmin as applyInstallationsSetPeersRevokeAdminExecutionChain,
+  applyInstallationsSetPeers as applyInstallationsSetPeersExecutionChain,
   prepareSetupReceiver,
   prepareSetupToucanVoting,
   setupExecutionChain,
@@ -19,7 +11,7 @@ import {
   prepareSetupAdminXChain,
   prepareSetupRelay,
   setupVotingChain,
-  applyInstallationsSetPeersRevokeAdmin as applyInstallationsSetPeersRevokeAdminVotingChain,
+  applyInstallationsSetPeers as applyInstallationsSetPeersVotingChain,
   DEFAULT_VOTING_CHAIN_BASE,
 } from "./voting-chain";
 import { Options, hexZeroPadTo32 } from "@layerzerolabs/lz-v2-utilities";
@@ -39,7 +31,7 @@ const initialDeal = ethers.utils.parseEther("1000000"); // Replace with actual v
 const transferAmount = ethers.utils.parseEther("100000"); // Replace with actual value
 
 describe("Toucan Voting ZkSync Test", function () {
-  it("should deploy the DAO and Admin", async function () {
+  it("should deploy everything", async function () {
     const e = await setupExecutionChain(DEFAULT_EXECUTION_CHAIN_BASE);
     const v = await setupVotingChain(DEFAULT_VOTING_CHAIN_BASE);
     await _deployLayerZero(e.base, v.base);
@@ -47,27 +39,22 @@ describe("Toucan Voting ZkSync Test", function () {
     // execution chain
     await prepareSetupToucanVoting(e);
     await prepareSetupReceiver(e);
-    await prepareUninstallAdmin(e.base);
 
     // voting chain
     await prepareSetupRelay(v, e);
     await prepareSetupAdminXChain(v);
-    await prepareUninstallAdmin(v.base);
 
     // now set endpoint with mock
     await wireLayerZero(e, v);
 
     // // apply installs and set peers
-    await applyInstallationsSetPeersRevokeAdminExecutionChain(e, v);
-    await applyInstallationsSetPeersRevokeAdminVotingChain(v, e);
+    await applyInstallationsSetPeersExecutionChain(e, v);
+    await applyInstallationsSetPeersVotingChain(v, e);
     console.log("done applying installations and setting peers");
 
-    let hasExecute = await v.base.dao.isGranted(
-      v.base.dao.address,
-      v.adminXChain.address,
-      await v.base.dao.EXECUTE_PERMISSION_ID(),
-      "0x"
-    );
+    const executePermissionId = await v.base.dao.EXECUTE_PERMISSION_ID();
+
+    let hasExecute = await v.base.dao.isGranted(v.base.dao.address, v.adminXChain.address, executePermissionId, "0x");
 
     expect(hasExecute).to.eq(true, "Plugin doesn't have execute");
 
@@ -87,13 +74,26 @@ describe("Toucan Voting ZkSync Test", function () {
     await executeBridgeProposal(e, v, proposalId);
 
     // check the adminXChain no longer has execute on the voting chain dao
-    hasExecute = await v.base.dao.isGranted(
-      v.base.dao.address,
-      v.adminXChain.address,
-      await v.base.dao.EXECUTE_PERMISSION_ID(),
+    hasExecute = await v.base.dao.isGranted(v.base.dao.address, v.adminXChain.address, executePermissionId, "0x");
+    expect(hasExecute).to.eq(false, "Plugin still has execute");
+
+    // check the multisig is installed on both chains
+    const multisigHasExecExecChain = await e.base.dao.isGranted(
+      e.base.dao.address,
+      e.base.multisig.address,
+      executePermissionId,
       "0x"
     );
-    expect(hasExecute).to.eq(false, "Plugin still has execute");
+
+    const multisigHasExecVotingChain = await v.base.dao.isGranted(
+      v.base.dao.address,
+      v.base.multisig.address,
+      executePermissionId,
+      "0x"
+    );
+
+    expect(multisigHasExecExecChain).to.eq(true, "Multisig doesn't have execute on execution chain");
+    expect(multisigHasExecVotingChain).to.eq(true, "Multisig doesn't have execute on voting chain");
   });
 });
 

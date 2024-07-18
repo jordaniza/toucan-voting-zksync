@@ -3,7 +3,7 @@ import { DAO, IDAO } from "../../typechain";
 import { ExecutionChain, VotingChain, mockApplyInstallationParams, mockApplyUninstallationParams } from "./base";
 
 export async function executionActions(chain: ExecutionChain, votingChain: VotingChain): Promise<IDAO.ActionStruct[]> {
-  const actions: IDAO.ActionStruct[] = new Array(6);
+  const actions: IDAO.ActionStruct[] = [];
 
   // action 0: apply the tokenVoting installation
   actions[0] = {
@@ -52,16 +52,6 @@ export async function executionActions(chain: ExecutionChain, votingChain: Votin
     data: chain.adapter.interface.encodeFunctionData("setPeer", [
       votingChain.base.eid,
       addressToBytes32(votingChain.bridge.address),
-    ]),
-  };
-
-  // action 5: uninstall the admin plugin
-  actions[5] = {
-    to: chain.base.psp.address,
-    value: 0,
-    data: chain.base.psp.interface.encodeFunctionData("applyUninstallation", [
-      chain.base.dao.address,
-      mockApplyUninstallationParams(chain.base.admin.address, chain.base.adminUninstallPermissions),
     ]),
   };
 
@@ -118,16 +108,6 @@ export async function votingActions(chain: VotingChain, executionChain: Executio
     data: chain.bridge.interface.encodeFunctionData("setPeer", [
       executionChain.base.eid,
       addressToBytes32(executionChain.adapter.address),
-    ]),
-  };
-
-  // action 5: uninstall the admin plugin
-  actions[5] = {
-    to: chain.base.psp.address,
-    value: 0,
-    data: chain.base.psp.interface.encodeFunctionData("applyUninstallation", [
-      chain.base.dao.address,
-      mockApplyUninstallationParams(chain.base.admin.address, chain.base.adminUninstallPermissions),
     ]),
   };
 

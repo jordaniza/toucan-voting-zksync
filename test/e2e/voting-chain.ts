@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { LOCAL_RICH_WALLETS, deployContract, getWallet } from "../../deploy/utils";
+import { LOCAL_RICH_WALLETS, deployContract, getProvider, getWallet } from "../../deploy/utils";
 import {
   AdminXChainSetup,
   AdminXChain__factory,
@@ -15,7 +15,7 @@ import {
   InstallationParamsStruct,
   VOTING_VOTER,
   VotingChain,
-  deployDAOAndAdmin,
+  deployDAOAndMultisig,
   deployOSX,
   mockPrepareInstallationParams,
 } from "./base";
@@ -35,7 +35,7 @@ export async function setupVotingChain(config: IChainBase): Promise<VotingChain>
   const v = new VotingChain(base);
 
   await deployOSX(v.base);
-  await deployDAOAndAdmin(v.base);
+  await deployDAOAndMultisig(v.base);
 
   return v;
 }
@@ -56,7 +56,7 @@ export async function prepareSetupRelay(chain: VotingChain, e: ExecutionChain): 
   chain.relaySetup = relaySetup as ToucanRelaySetup;
 
   const txQueue = await chain.base.psp.queueSetup(chain.relaySetup.address);
-  await txQueue.wait();
+  await txQueue.wait(5);
 
   const params: InstallationParamsStruct = {
     lzEndpoint: chain.base.lzEndpoint,
@@ -67,7 +67,7 @@ export async function prepareSetupRelay(chain: VotingChain, e: ExecutionChain): 
   };
 
   const data = ethers.utils.defaultAbiCoder.encode(
-    ["tuple(address lzEndpoint, string tokenName, string tokenSymbol, uint32 dstEid, uint256 votingBridgeBuffer)"],
+    ["tuple(address lzEndpoint, string tokenName, string tokenSymbol, uint32 dstEid, uint32 votingBridgeBuffer)"],
     [params]
   );
 
@@ -77,7 +77,7 @@ export async function prepareSetupRelay(chain: VotingChain, e: ExecutionChain): 
   );
 
   const tx = await chain.base.psp.prepareInstallation(chain.base.dao.address, mockPrepareInstallationParams(data));
-  await tx.wait();
+  await tx.wait(5);
 
   chain.toucanRelayPermissions = toucanRelaySetupData.permissions;
 
@@ -97,7 +97,7 @@ export async function prepareSetupAdminXChain(chain: VotingChain): Promise<void>
   chain.adminXChainSetup = adminXChainSetupDeployed as AdminXChainSetup;
 
   const txQueue = await chain.base.psp.queueSetup(chain.adminXChainSetup.address);
-  await txQueue.wait();
+  await txQueue.wait(5);
 
   const data = ethers.utils.defaultAbiCoder.encode(["address"], [chain.base.lzEndpoint]);
 
@@ -107,17 +107,15 @@ export async function prepareSetupAdminXChain(chain: VotingChain): Promise<void>
   );
 
   const tx = await chain.base.psp.prepareInstallation(chain.base.dao.address, mockPrepareInstallationParams(data));
-  await tx.wait();
+  await tx.wait(5);
 
   chain.adminXChainPermissions = adminXChainSetupData.permissions;
   chain.adminXChain = AdminXChain__factory.connect(adminXChainAddress, chain.base.deployer);
 }
 
-export async function applyInstallationsSetPeersRevokeAdmin(
-  chain: VotingChain,
-  executionChain: ExecutionChain
-): Promise<void> {
+export async function applyInstallationsSetPeers(chain: VotingChain, executionChain: ExecutionChain): Promise<void> {
   const actions = await votingActions(chain, executionChain);
-  const tx = await chain.base.admin.executeProposal("0x", actions, 0);
+  const block = await getProvider().getBlock("latest");
+  const tx = await chain.base.multisig.createProposal("0x", actions, 0, true, true, 0, block.timestamp + 15 * 60);
   await tx.wait();
 }

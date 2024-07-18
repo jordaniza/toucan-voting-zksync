@@ -12,6 +12,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /// @author Matter Labs
 /// @notice This contract does not include any validations other than using the paymaster general flow.
 contract GeneralPaymaster is IPaymaster, Ownable {
+    address public sponsoredContract;
+
     modifier onlyBootloader() {
         require(
             msg.sender == BOOTLOADER_FORMAL_ADDRESS,
@@ -19,6 +21,15 @@ contract GeneralPaymaster is IPaymaster, Ownable {
         );
         // Continue execution if called from the bootloader.
         _;
+    }
+
+    constructor(address _sponsoredContract) {
+        sponsoredContract = _sponsoredContract;
+    }
+
+    // restrict calls to only the sponsored contract
+    function setSponsoredContract(address contractAddress) external onlyOwner {
+        sponsoredContract = contractAddress;
     }
 
     function validateAndPayForPaymasterTransaction(
@@ -42,6 +53,11 @@ contract GeneralPaymaster is IPaymaster, Ownable {
             _transaction.paymasterInput[0:4]
         );
         if (paymasterInputSelector == IPaymasterFlow.general.selector) {
+            require(
+                address(uint160(_transaction.to)) == sponsoredContract,
+                "Invalid from address"
+            );
+
             // Note, that while the minimal amount of ETH needed is tx.gasPrice * tx.gasLimit,
             // neither paymaster nor account are allowed to access this context variable.
             uint256 requiredETH = _transaction.gasLimit *

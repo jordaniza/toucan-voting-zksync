@@ -6,6 +6,7 @@ declare -A remappings=(
 
   # remap to aragon enshrined plugins
   ["@aragon/admin/"]="@aragon/osx/packages/contracts/contracts/plugins/governance/admin/"
+  ["@aragon/multisig/"]="@aragon/osx/packages/contracts/contracts/plugins/governance/multisig/"
 
   # remap layerzero because we want to use 0.8.17 pragma
   ["@lz-oapp/"]="contracts/layer-zero/LayerZero-v2/oapp/contracts/oapp/"

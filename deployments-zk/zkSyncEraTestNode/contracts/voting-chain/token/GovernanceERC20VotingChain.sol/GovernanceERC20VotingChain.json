@@ -854,18 +854,6 @@
   "entries": [
     {
       "constructorArgs": [
-        "0x2B35A9D960b77b231f1632C3B485F6434669720C",
-        "TestToken",
-        "TT"
-      ],
-      "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "deploymentType": "create",
-      "factoryDeps": [],
-      "address": "0x9035E63C5Ac74dE843F176BE6B9869cA2385C61d",
-      "txHash": "0x34df41da71219f80461e070d24ec0c1bec61763bd148f89b8326bfe67ec01f3a"
-    },
-    {
-      "constructorArgs": [
         "0x8b142b41FCE0a044fA34307e0892E4Bf5C59642A",
         "TestToken",
         "TT"
@@ -875,6 +863,18 @@
       "factoryDeps": [],
       "address": "0xF9933bec21ad177D64C346F49d6d16459db84620",
       "txHash": "0xdba58dafb7bf38682fbf1148249419b4d78c36b43cb20a988ae9e1b9e598a80a"
+    },
+    {
+      "constructorArgs": [
+        "0x2B35A9D960b77b231f1632C3B485F6434669720C",
+        "TestToken",
+        "TT"
+      ],
+      "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "deploymentType": "create",
+      "factoryDeps": [],
+      "address": "0x9035E63C5Ac74dE843F176BE6B9869cA2385C61d",
+      "txHash": "0xf34912e58786fe002728149c53a2b68c9e0f1a2ef07968bd88c9d70fbb8a869d"
     }
   ]
 }

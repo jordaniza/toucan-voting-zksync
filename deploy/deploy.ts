@@ -1,28 +1,19 @@
-import { ChainBase, ExecutionChain, IChainBase, VotingChain, prepareUninstallAdmin } from "../test/e2e/base";
+import { ChainBase, ExecutionChain, IChainBase, VotingChain } from "../test/e2e/base";
 import {
   prepareSetupAdminXChain,
   prepareSetupRelay,
   setupVotingChain,
-  applyInstallationsSetPeersRevokeAdmin,
+  applyInstallationsSetPeers,
 } from "../test/e2e/voting-chain";
-import {
-  ActionRelay__factory,
-  AdminSetupZkSync__factory,
-  AdminXChainSetup__factory,
-  Admin__factory,
-  DAO__factory,
-  GovernanceOFTAdapter__factory,
-  MockDAOFactory__factory,
-  MockPluginSetupProcessor__factory,
-  ToucanReceiver__factory,
-  ToucanRelaySetup__factory,
-} from "../typechain";
+import { ActionRelay__factory, GovernanceOFTAdapter__factory, ToucanReceiver__factory } from "../typechain";
 import { getWallet } from "./utils";
 
-const RECEIVER_ADDRESS = "0x2cb5e3A3C58B84ed322d4b2325f2fB196976aE31";
-const ACTION_RELAY_ADDRESS = "0x75Ec043f0Ab838d274d544F147D8ae0f5De9d8E5";
-const ADAPTER_ADDRESS = "0x8D3439c61cfb233bdc2C009a0ea0585269F7Eb3B";
-
+const RECEIVER_ADDRESS = "0xCb1838Fcb8402a0857A77fBd66ffd25012683026";
+const ACTION_RELAY_ADDRESS = "0x2a40e813E084045574FA631848d3241Fb5eb9D7B";
+const ADAPTER_ADDRESS = "0x68dfCa0806aA79048eAab0033bebe6F02BF22685";
+// Receiver: 0xCb1838Fcb8402a0857A77fBd66ffd25012683026
+// ActionRelay: 0x2a40e813E084045574FA631848d3241Fb5eb9D7B
+// Adapter: 0x68dfCa0806aA79048eAab0033bebe6F02BF22685
 // mocks - don't use in prod
 // const ADAPTER_ADDRESS = "0x59c6995E998f97A5a0044966f0945386E01A1bE7";
 // const RECEIVER_ADDRESS = "0x2c2a3B3e9372f65B84D5616e2B639b0Ff7A45B8D";
@@ -74,8 +65,7 @@ export default async function () {
   // configure the voting chain
   await prepareSetupRelay(v, e);
   await prepareSetupAdminXChain(v);
-  await prepareUninstallAdmin(v.base);
-  await applyInstallationsSetPeersRevokeAdmin(v, e);
+  await applyInstallationsSetPeers(v, e);
 
   console.log("VotingChain:");
   console.log("  chainName: ", v.base.chainName);
@@ -89,6 +79,7 @@ export default async function () {
   console.log("  adminXChain: ", v.adminXChain.address);
   console.log("  bridge: ", v.bridge.address);
   console.log("  token: ", v.token.address);
+  console.log("  multisig: ", v.base.multisig.address);
 
   console.log("ExecutionChain Data:");
   console.log("  chainName: ", e.base.chainName);
